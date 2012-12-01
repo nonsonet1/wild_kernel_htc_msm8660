@@ -41,6 +41,9 @@ struct gpio_event_info {
 		     void **data, unsigned int dev, unsigned int type,
 		     unsigned int code, int value); 
 	bool no_suspend;
+#ifdef CONFIG_OPTICALJOYSTICK_CRUCIAL
+	bool oj_btn;
+#endif
 };
 
 struct gpio_event_platform_data {
@@ -74,6 +77,9 @@ enum gpio_event_matrix_flags {
 #define MATRIX_KEY(dev, code) \
 	(((dev) << MATRIX_CODE_BITS) | (code & MATRIX_KEY_MASK))
 
+#ifdef CONFIG_MACH_DOUBLESHOT
+extern int get_kp_irq_mode(void);
+#endif
 extern int gpio_event_matrix_func(struct gpio_event_input_devs *input_devs,
 			struct gpio_event_info *info, void **data, int func);
 struct gpio_event_matrix_info {
@@ -91,6 +97,13 @@ struct gpio_event_matrix_info {
 	struct timespec debounce_delay;
 	struct timespec poll_time;
 	unsigned flags;
+#ifdef CONFIG_MACH_DOUBLESHOT
+	void (*setup_ninputs_gpio)(void);
+	/* disable some gpio as wakeup source */
+	unsigned int notintr_gpios;
+	unsigned int detect_phone_status;
+	void (*setup_matrix_gpio)(void);
+#endif
 };
 
 
@@ -106,6 +119,9 @@ struct gpio_event_direct_entry {
 	uint32_t code:10;
 	uint32_t dev:6;
 	bool     not_wakeup_src;
+#ifdef CONFIG_MACH_DOUBLESHOT
+	bool     check_call_status;
+#endif
 };
 
 extern int gpio_event_input_func(struct gpio_event_input_devs *input_devs,
@@ -168,6 +184,22 @@ uint16_t gpio_axis_4bit_gray_map(
 uint16_t gpio_axis_5bit_singletrack_map(
 			struct gpio_event_axis_info *info, uint16_t in);
 
+#ifdef CONFIG_MACH_DOUBLESHOT
+extern int gpio_event_microp_func(struct gpio_event_input_devs *input_devs,
+			struct gpio_event_info *info, void **data, int func);
+struct gpio_event_microp_info {
+	/* initialize to gpio_event_microp_func */
+	struct gpio_event_info info;
+	uint16_t flags;
+	uint16_t type;
+	const struct gpio_event_direct_entry *keymap;
+	size_t keymap_size;
+	uint32_t irq;
+	uint8_t microp_info;
+};
+#endif
+
+/* switchs */
 extern int gpio_event_switch_func(struct gpio_event_input_devs *input_devs,
 			struct gpio_event_info *info, void **data, int func);
 struct gpio_event_switch_info {
@@ -182,4 +214,5 @@ struct gpio_event_switch_info {
 	void (*setup_switch_gpio)(void);
 	void (*set_qty_irq)(uint8_t);
 };
-#endif
+
+#endif /* _LINUX_GPIO_EVENT_H */

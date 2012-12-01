@@ -132,6 +132,10 @@ obj-y += mipi_chimei_wxga_pt.o
 obj-y += mipi_chimei_wuxga.o
 obj-y += mipi_truly_video_wvga_pt.o
 obj-y += mipi_novatek_video_wvga_pt.o
+obj-y += mipi_novatek_cmd_qhd_pt.o
+obj-y += mipi_novatek_cmd_wvga_pt.o
+obj-y += mipi_himax_video_720p_pt.o
+#obj-y += mipi_renesas_cmd_wvga_pt.o
 obj-y += mipi_orise_cmd_qhd_pt.o
 else
 obj-$(CONFIG_FB_MSM_MIPI_TOSHIBA_VIDEO_WVGA_PT) += mipi_toshiba_video_wvga_pt.o
