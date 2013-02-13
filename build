@@ -32,8 +32,8 @@ echo Copying files and making flashable
 cp -f arch/arm/boot/zImage flashable/zip/kernel/zImage
 find -iname "*.ko" -exec cp {} flashable/zip/system/lib/modules/ \; >/dev/null
 cd flashable/zip/
-zip -r9 ../../WildKernel.zip *
+zip -r9 ../../ChronicKernel.zip *
 cd ../..
-java -jar flashable/tools/signapk.jar flashable/tools/testkey.x509.pem flashable/tools/testkey.pk8 WildKernel.zip WildKernel_signed.zip
-rm -rf WildKernel.zip
+java -jar flashable/tools/signapk.jar flashable/tools/testkey.x509.pem flashable/tools/testkey.pk8 ChronicKernel.zip ChronicKernel_signed.zip
+rm -rf ChronicKernel.zip
 echo done

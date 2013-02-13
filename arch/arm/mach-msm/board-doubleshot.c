@@ -120,6 +120,7 @@
 #include <mach/rpm-regulator.h>
 #include <mach/restart.h>
 #include <mach/cable_detect.h>
+#include <linux/msm_tsens.h>
 
 #include "board-doubleshot.h"
 #include "devices.h"
@@ -151,6 +152,13 @@ int set_two_phase_freq(int cpufreq);
 #ifdef CONFIG_CPU_FREQ_GOV_INTELLIDEMAND
 int id_set_two_phase_freq(int cpufreq);
 #endif
+#endif
+
+#ifdef CONFIG_CPU_FREQ_GOV_BADASS_2_PHASE
+int set_two_phase_freq_badass(int cpufreq);
+#endif
+#ifdef CONFIG_CPU_FREQ_GOV_BADASS_3_PHASE
+int set_three_phase_freq_badass(int cpufreq);
 #endif
 
 /* Macros assume PMIC GPIOs start at 0 */
@@ -504,7 +512,7 @@ static struct regulator_init_data saw_s0_init_data = {
 		.constraints = {
 			.name = "8901_s0",
 			.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE,
-			.min_uV = 800000,
+			.min_uV = 700000,
 			.max_uV = 1350000,
 		},
 		.consumer_supplies = vreg_consumers_8901_S0,
@@ -515,7 +523,7 @@ static struct regulator_init_data saw_s1_init_data = {
 		.constraints = {
 			.name = "8901_s1",
 			.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE,
-			.min_uV = 800000,
+			.min_uV = 700000,
 			.max_uV = 1350000,
 		},
 		.consumer_supplies = vreg_consumers_8901_S1,
@@ -2311,8 +2319,8 @@ static int configure_uart_gpios(int on)
 }
 
 static struct msm_serial_hs_platform_data msm_uart_dm1_pdata = {
-	.wakeup_irq = -1,
-	.inject_rx_on_wakeup = 0,
+	.inject_rx_on_wakeup = 1,
+	.rx_to_inject = 0xFD,	
 	.gpio_config = configure_uart_gpios,
 	.exit_lpm_cb = bcm_bt_lpm_exit_lpm_locked,
 };
@@ -2696,7 +2704,7 @@ static struct rpm_regulator_init_data rpm_regulator_init_data[] = {
 
 	/*	ID        a_on pd ss min_uV   max_uV   init_ip */
 	RPM_LDO(PM8901_L0,  0, 1, 0, 1200000, 1200000, LDO300HMIN),
-	RPM_LDO(PM8901_L1,  0, 1, 0, 3000000, 3100000, LDO300HMIN),
+	RPM_LDO(PM8901_L1,  0, 1, 0, 2850000, 2950000, LDO300HMIN),
 	RPM_LDO(PM8901_L2,  0, 0, 0, 3300000, 3300000, LDO300HMIN),
 	RPM_LDO(PM8901_L3,  0, 1, 0, 2850000, 2850000, LDO300HMIN),
 	RPM_LDO(PM8901_L4,  0, 1, 0, 1800000, 1800000, LDO300HMIN),
@@ -2802,11 +2810,19 @@ static struct platform_device *early_devices[] __initdata = {
 #endif
 };
 
+static struct tsens_platform_data pyr_tsens_pdata  = {
+		.tsens_factor		= 1000,
+		.hw_type		= MSM_8660,
+		.tsens_num_sensor	= 6,
+		.slope 			= 702,
+};
+
+/*
 static struct platform_device msm_tsens_device = {
 	.name   = "tsens-tm",
 	.id = -1,
 };
-
+*/
 
 #ifdef CONFIG_SENSORS_MSM_ADC
 static struct adc_access_fn xoadc_fn = {
@@ -3358,6 +3374,7 @@ static struct platform_device *doubleshot_devices[] __initdata = {
 #endif
 
 	&msm_device_otg,
+	&msm_device_hsusb_host,
 #ifdef CONFIG_BATTERY_MSM
 	&msm_batt_device,
 #endif
@@ -3431,7 +3448,7 @@ static struct platform_device *doubleshot_devices[] __initdata = {
 	&msm_device_rng,
 #endif
 
-	&msm_tsens_device,
+//	&msm_tsens_device,
 	&msm_rpm_device,
 	&cable_detect_device,
 #ifdef CONFIG_BT
@@ -6475,7 +6492,7 @@ struct msm_board_data {
 };
 
 static struct msm_board_data doubleshot_board_data __initdata = {
-	.gpiomux_cfgs = msm8x60_doubleshot_gpiomux_cfgs,
+	.gpiomux_cfgs = msm8x60_pyramid_gpiomux_cfgs,
 };
 
 void doubleshot_add_usb_devices(void)
@@ -6543,6 +6560,9 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 
 	raw_speed_bin = readl(QFPROM_SPEED_BIN_ADDR);
 	speed_bin = raw_speed_bin & 0xF;
+
+// TODO!! this should be done in this kernel version?? originally the platform data was commented out
+	msm_tsens_early_init(&pyr_tsens_pdata);
 
 	/*
 	 * Initialize RPM first as other drivers and devices may need
@@ -6630,6 +6650,13 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 #ifdef CONFIG_CPU_FREQ_GOV_INTELLIDEMAND
 	id_set_two_phase_freq(1134000);
 #endif
+#endif
+
+#ifdef CONFIG_CPU_FREQ_GOV_BADASS_2_PHASE
+	set_two_phase_freq_badass(CONFIG_CPU_FREQ_GOV_BADASS_2_PHASE_FREQ);
+#endif
+#ifdef CONFIG_CPU_FREQ_GOV_BADASS_3_PHASE
+	set_three_phase_freq_badass(CONFIG_CPU_FREQ_GOV_BADASS_3_PHASE_FREQ);
 #endif
 
 	msm8x60_init_tlmm();

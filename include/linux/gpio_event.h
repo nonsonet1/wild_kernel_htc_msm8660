@@ -91,8 +91,12 @@ struct gpio_event_matrix_info {
 	unsigned int *input_gpios;
 	unsigned int *output_gpios;
 	unsigned int ninputs;
-	unsigned int noutputs;
+    	unsigned int noutputs;
 	/* time to wait before reading inputs after driving each output */
+//	ktime_t settle_time;
+	/* time to wait before scanning the keypad a second time */
+//	ktime_t debounce_delay;
+//	ktime_t poll_time;
 	struct timespec settle_time;
 	/* time to wait before scanning the keypad a second time */
 	struct timespec debounce_delay;
@@ -122,10 +126,8 @@ struct gpio_event_direct_entry {
 	uint32_t gpio:16;
 	uint32_t code:10;
 	uint32_t dev:6;
-	bool     not_wakeup_src;
-#ifdef CONFIG_MACH_DOUBLESHOT
 	bool     check_call_status;
-#endif
+	bool     not_wakeup_src;
 };
 
 /* inputs */
@@ -191,6 +193,7 @@ uint16_t gpio_axis_5bit_singletrack_map(
 			struct gpio_event_axis_info *info, uint16_t in);
 
 #ifdef CONFIG_MACH_DOUBLESHOT
+/* MicroP keys */
 extern int gpio_event_microp_func(struct gpio_event_input_devs *input_devs,
 			struct gpio_event_info *info, void **data, int func);
 struct gpio_event_microp_info {
@@ -222,3 +225,6 @@ struct gpio_event_switch_info {
 };
 
 #endif /* _LINUX_GPIO_EVENT_H */
+int gpio_event_get_phone_call_status(void);
+int gpio_event_get_fm_radio_status(void);
+int gpio_event_get_quickboot_status(void);
