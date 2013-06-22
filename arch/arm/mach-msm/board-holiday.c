@@ -7229,12 +7229,12 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 
 	htc_monitor_init();
 	htc_PM_monitor_init();
-
+        /*
 	if (get_kernel_flag() & KERNEL_FLAG_ENABLE_FAST_CHARGE)
 		android_usb_pdata.enable_fast_charge = holiday_enable_fast_charge;
 	else
 		android_usb_pdata.enable_fast_charge = NULL;
-
+        */
 	headset_device_register();
 }
 
