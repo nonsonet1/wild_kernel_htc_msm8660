@@ -24,16 +24,17 @@
 #include <mach/gpio.h>
 #include <mach/dal.h>
 #include <mach/tpa2051d3.h>
-#include <mach/qdsp6v2_1x/snddev_icodec.h>
-#include <mach/qdsp6v2_1x/snddev_ecodec.h>
-#include <mach/qdsp6v2_1x/snddev_hdmi.h>
-#include <mach/qdsp6v2_1x/audio_dev_ctl.h>
-#include <mach/qdsp6v2_1x/apr_audio.h>
-#include <mach/qdsp6v2_1x/q6asm.h>
+#include <mach/qdsp6v3/snddev_icodec.h>
+#include <mach/qdsp6v3/snddev_ecodec.h>
+#include <mach/qdsp6v3/snddev_hdmi.h>
+//#include <mach/qdsp6v2_1x/audio_dev_ctl.h>
+//#include <mach/qdsp6v2_1x/apr_audio.h>
+//#include <mach/qdsp6v2_1x/q6asm.h>
 #include <mach/htc_acoustic_8x60.h>
 
 #include "board-holiday.h"
 #include "board-holiday-audio-data.h"
+#include <mach/qdsp6v3/audio_dev_ctl.h>
 #include <linux/a1026.h>
 
 #define PM8058_GPIO_BASE					NR_MSM_GPIOS
@@ -43,7 +44,7 @@ static struct mutex bt_sco_lock;
 static struct mutex mic_lock;
 static int curr_rx_mode;
 static int support_audience;
-static atomic_t q6_effect_mode = ATOMIC_INIT(-1);
+//static atomic_t q6_effect_mode = ATOMIC_INIT(-1);
 extern unsigned skuid;
 
 #define SKU_ATT1 0x2A800 /*AT&T 1*/
@@ -192,7 +193,7 @@ void holiday_mic_enable(int en, int shift)
 
 void holiday_imic_pamp_on_with_audience(int en)
 {
-	int ret, call_state = 0;
+	int ret, call_state=0;
 	pr_aud_info("%s %d\n", __func__, en);
 
 	call_state = msm_get_call_state();
@@ -244,10 +245,13 @@ void holiday_imic_pamp_on_without_audience(int en)
 
 void holiday_snddev_imic_pamp_on(int en)
 {
+#ifdef CONFIG_HTC_HOLIDAY_AUDIO
 	if (support_audience)
 		holiday_imic_pamp_on_with_audience(en);
 	else
+#else
 		holiday_imic_pamp_on_without_audience(en);
+#endif
 }
 
 void holiday_snddev_bmic_pamp_on(int en)
@@ -408,26 +412,12 @@ int holiday_support_audience(void)
 
 void holiday_get_acoustic_tables(struct acoustic_tables *tb)
 {
-	if (support_audience) {
-		strcpy(tb->aic3254, "AIC3254_REG_DualMic_XD.csv");
-		strcpy(tb->tpa2051, "TPA2051_CFG_XC.csv");
-	} else {
+	if (support_audience)
+		strcpy(tb->aic3254, "AIC3254_REG_DualMic_WA.txt");
+	else
 		strcpy(tb->aic3254, "AIC3254_REG_DualMic.txt");
-	}
 }
 
-int holiday_support_beats(void)
-{
-	/* this means HW support 1V for beats */
-	/* holiday don't have 1V device now. */
-	return 0;
-}
-
-void holiday_enable_beats(int en)
-{
-	pr_aud_info("%s: %d\n", __func__, en);
-	set_beats_on(en);
-}
 
 int holiday_is_msm_i2s_slave(void)
 {
@@ -566,19 +556,6 @@ static void __init audience_gpio_init(void)
 	}
 }
 
-void holiday_set_q6_effect_mode(int mode)
-{
-	pr_aud_info("%s: mode %d\n", __func__, mode);
-	atomic_set(&q6_effect_mode, mode);
-}
-
-int holiday_get_q6_effect_mode(void)
-{
-	int mode = atomic_read(&q6_effect_mode);
-	pr_aud_info("%s: mode %d\n", __func__, mode);
-	return mode;
-}
-
 static struct q6v2audio_analog_ops ops = {
 	.speaker_enable			= holiday_snddev_poweramp_on,
 	.headset_enable			= holiday_snddev_hsed_pamp_on,
@@ -621,9 +598,6 @@ static struct acoustic_ops acoustic = {
 	.support_back_mic = holiday_support_back_mic,
 	.support_audience = holiday_support_audience,
 	.get_acoustic_tables = holiday_get_acoustic_tables,
-	.support_beats = holiday_support_beats,
-	.enable_beats = holiday_enable_beats,
-	.set_q6_effect = holiday_set_q6_effect_mode,
 };
 
 #ifdef CONFIG_VP_A1026
@@ -635,11 +609,6 @@ static struct audience_ctl_ops a1026ops = {
 	.recovery = holiday_a1026_recovery,
 };
 #endif
-
-static struct q6asm_ops qops = {
-	.get_q6_effect = holiday_get_q6_effect_mode,
-};
-
 void holiday_aic3254_set_mode(int config, int mode)
 {
 	aic3254_set_mode(config, mode);
@@ -658,11 +627,7 @@ void __init holiday_audio_init(void)
 	pr_aud_info("%s: 0x%x\n", __func__, skuid);
 	switch (skuid) {
 	case SKU_ATT1:
-		support_audience = 1;
-		break;
 	case SKU_ATT2:
-		support_audience = 1;
-		break;
 	case SKU_ATT3:
 		support_audience = 1;
 		break;
@@ -678,7 +643,6 @@ void __init holiday_audio_init(void)
 	htc_8x60_register_icodec_ops(&iops);
 	acoustic_register_ops(&acoustic);
 	htc_8x60_register_aic3254_ops(&aops);
-	htc_8x60_register_q6asm_ops(&qops);
 
 #ifdef CONFIG_VP_A1026
 	a1026_register_ctl_ops(&a1026ops);
@@ -687,14 +651,14 @@ void __init holiday_audio_init(void)
 	if (!support_audience)
 		/*fix voice sample rate as 8KHz for 3254 dual mic.*/
 		msm_set_voc_freq(8000, 8000);
-
-	aic3254_register_ctl_ops(&cops);
 #endif
+	aic3254_register_ctl_ops(&cops);
+
 
 	/* PMIC GPIO Init (See board-holiday.c) */
 	/* Reset AIC3254 */
 	holiday_reset_3254();
-	for (i = 0; i < sizeof(msm_snddev_gpio); i++)
+	for (i=0; i<sizeof(msm_snddev_gpio); i++)
 		gpio_tlmm_config(msm_snddev_gpio[i], GPIO_CFG_DISABLE);
 
 	/* Configure A1026 GPIOs */
