@@ -111,6 +111,7 @@
 #include <mach/restart.h>
 #include <mach/cable_detect.h>
 #include <mach/panel_id.h>
+#include <linux/msm_tsens.h>
 
 #include "board-holiday.h"
 #include "devices.h"
@@ -334,6 +335,17 @@ unsigned int holiday_get_engineerid(void)
 #ifdef CONFIG_CPU_FREQ_GOV_ONDEMAND_2_PHASE
 int set_two_phase_freq(int cpufreq);
 #endif
+#ifdef CONFIG_CPU_FREQ_GOV_INTELLIDEMAND
+int id_set_two_phase_freq(int cpufreq);
+#endif
+
+#ifdef CONFIG_CPU_FREQ_GOV_BADASS_2_PHASE
+int set_two_phase_freq_badass(int cpufreq);
+#endif
+
+#ifdef CONFIG_CPU_FREQ_GOV_BADASS_3_PHASE
+int set_three_phase_freq_badass(int cpufreq);
+#endif
 
 #ifdef CONFIG_MMC_MSM_SDC2_SUPPORT
 static void (*sdc2_status_notify_cb)(int card_present, void *dev_id);
@@ -468,18 +480,27 @@ static struct msm_spm_platform_data msm_spm_data[] __initdata = {
 };
 
 #ifdef CONFIG_PERFLOCK
-static unsigned holiday_perf_acpu_table_1188k[] = {
+static unsigned holiday_perf_acpu_table[] = {
 	384000000,
 	756000000,
 	1188000000,
 };
-static unsigned holiday_perf_acpu_table_1512k[] = {
-	540000000,
-	1026000000,
-	1512000000,
+
+static struct perflock_platform_data holiday_perflock_data = {
+	.perf_acpu_table = holiday_perf_acpu_table,
+	.table_size = ARRAY_SIZE(holiday_perf_acpu_table),
 };
 
-static struct perflock_platform_data holiday_perflock_data;
+static unsigned holiday_cpufreq_ceiling_acpu_table[] = {
+	-1,
+	-1,
+	1026000000,
+};
+
+static struct perflock_platform_data holiday_cpufreq_ceiling_data = {
+	.perf_acpu_table = holiday_cpufreq_ceiling_acpu_table,
+	.table_size = ARRAY_SIZE(holiday_cpufreq_ceiling_acpu_table),
+};
 #endif
 
 /*
@@ -497,8 +518,8 @@ static struct regulator_init_data saw_s0_init_data = {
 		.constraints = {
 			.name = "8901_s0",
 			.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE,
-			.min_uV = 840000,
-			.max_uV = 1250000,
+			.min_uV = 700000,
+			.max_uV = 1450000,
 		},
 		.consumer_supplies = vreg_consumers_8901_S0,
 		.num_consumer_supplies = ARRAY_SIZE(vreg_consumers_8901_S0),
@@ -508,8 +529,8 @@ static struct regulator_init_data saw_s1_init_data = {
 		.constraints = {
 			.name = "8901_s1",
 			.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE,
-			.min_uV = 840000,
-			.max_uV = 1250000,
+			.min_uV = 700000,
+			.max_uV = 1450000,
 		},
 		.consumer_supplies = vreg_consumers_8901_S1,
 		.num_consumer_supplies = ARRAY_SIZE(vreg_consumers_8901_S1),
@@ -1744,7 +1765,7 @@ static struct msm_camera_sensor_flash_src msm_flash_src = {
 
 static struct camera_flash_cfg msm_camera_sensor_flash_cfg = {
 	.low_temp_limit		= 5,
-	.low_cap_limit		= 15,
+	.low_cap_limit		= 5,
 };
 
 #ifdef CONFIG_S5K3H2YX
@@ -3163,9 +3184,9 @@ static struct regulator_consumer_supply vreg_consumers_PM8901_S4_PC[] = {
 
 /* RPM early regulator constraints */
 static struct rpm_regulator_init_data rpm_regulator_early_init_data[] = {
-	/*	 ID	   a_on pd ss min_uV   max_uV   init_ip	freq */
-	RPM_SMPS(PM8058_S0, 0, 1, 1,  500000, 1250000, SMPS_HMIN, 1p92),
-	RPM_SMPS(PM8058_S1, 0, 1, 1,  500000, 1250000, SMPS_HMIN, 1p92),
+	/*	 ID       a_on pd ss min_uV   max_uV   init_ip    freq */
+	RPM_SMPS(PM8058_S0, 0, 1, 1,  500000, 1450000, SMPS_HMIN, 1p92),
+	RPM_SMPS(PM8058_S1, 0, 1, 1,  500000, 1450000, SMPS_HMIN, 1p92),
 };
 
 /* RPM regulator constraints */
@@ -3291,9 +3312,11 @@ static struct platform_device *early_devices[] __initdata = {
 	&msm_device_dmov_adm1,
 };
 
-static struct platform_device msm_tsens_device = {
-	.name   = "tsens-tm",
-	.id = -1,
+static struct tsens_platform_data hol_tsens_pdata  = {
+		.tsens_factor		= 1000,
+		.hw_type		= MSM_8660,
+		.tsens_num_sensor	= 6,
+		.slope 			= 702,
 };
 
 #if defined(CONFIG_GPIO_SX150X) || defined(CONFIG_GPIO_SX150X_MODULE)
@@ -6811,7 +6834,7 @@ static struct platform_device *holiday_devices[] __initdata = {
 	&msm_device_rng,
 #endif
 
-	&msm_tsens_device,
+	//&msm_tsens_device,
 	&msm_rpm_device,
 
 #ifdef CONFIG_BATTERY_MSM8X60
@@ -7003,6 +7026,7 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 
 	board_get_sku_color_tag(&sku_color);
 
+
 	if (sku_color != NULL) {
 		if (strcmp(sku_color, "WhiteColor") == 0) {
 			cm3628_pdata.levels[0] = 7;
@@ -7013,6 +7037,8 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 			pr_info("Not WhiteColor HOY\n");
 	} else
 		pr_info("Hboot need to update to detect WhiteColor HOY version\n");
+
+	msm_tsens_early_init(&hol_tsens_pdata);
 
 	/*
 	 * Initialize RPM first as other drivers and devices may need
@@ -7083,18 +7109,23 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 	acpuclk_init(&acpuclk_8x60_soc_data);
 
 #ifdef CONFIG_PERFLOCK
-	if (holiday_perf_acpu_table_1188k[PERF_LOCK_HIGHEST] == get_max_cpu_freq() * 1000) {
-		holiday_perflock_data.perf_acpu_table = holiday_perf_acpu_table_1188k;
-		holiday_perflock_data.table_size = ARRAY_SIZE(holiday_perf_acpu_table_1188k);
-	} else {
-		holiday_perflock_data.perf_acpu_table = holiday_perf_acpu_table_1512k;
-		holiday_perflock_data.table_size = ARRAY_SIZE(holiday_perf_acpu_table_1512k);
-	}
 	perflock_init(&holiday_perflock_data);
+	cpufreq_ceiling_init(&holiday_cpufreq_ceiling_data);
 #endif
 
 #ifdef CONFIG_CPU_FREQ_GOV_ONDEMAND_2_PHASE
 	set_two_phase_freq(1134000);
+#endif
+#ifdef CONFIG_CPU_FREQ_GOV_INTELLIDEMAND
+	id_set_two_phase_freq(1134000);
+#endif
+
+#ifdef CONFIG_CPU_FREQ_GOV_BADASS_2_PHASE
+	set_two_phase_freq_badass(CONFIG_CPU_FREQ_GOV_BADASS_2_PHASE_FREQ);
+#endif
+
+#ifdef CONFIG_CPU_FREQ_GOV_BADASS_3_PHASE
+	set_three_phase_freq_badass(CONFIG_CPU_FREQ_GOV_BADASS_3_PHASE_FREQ);
 #endif
 
 	msm8x60_init_tlmm();
@@ -7199,13 +7230,10 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 	htc_monitor_init();
 	htc_PM_monitor_init();
 
-#if 0
-/* HTC fast charge */
 	if (get_kernel_flag() & KERNEL_FLAG_ENABLE_FAST_CHARGE)
 		android_usb_pdata.enable_fast_charge = holiday_enable_fast_charge;
 	else
 		android_usb_pdata.enable_fast_charge = NULL;
-#endif
 
 	headset_device_register();
 }
