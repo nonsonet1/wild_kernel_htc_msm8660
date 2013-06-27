@@ -86,6 +86,7 @@
 #ifdef CONFIG_BT
 #include <mach/htc_bdaddress.h>
 #endif
+#include <mach/htc_usb.h>
 #include <mach/gpiomux.h>
 #ifdef CONFIG_MSM_DSPS
 #include <mach/msm_dsps.h>
@@ -100,7 +101,7 @@
 #include <linux/i2c/isl9519.h>
 #include <mach/tpa2051d3.h>
 #ifdef CONFIG_USB_G_ANDROID
-#include <linux/usb/android.h>
+#include <linux/usb/android_composite.h>
 #include <mach/usbdiag.h>
 #endif
 #include <linux/regulator/consumer.h>
@@ -1241,7 +1242,7 @@ static void msm_hsusb_vbus_power(bool on)
 static int holiday_phy_init_seq[] = { 0x06, 0x36, 0x0C, 0x31, 0x31, 0x32, 0x1, 0x0E, 0x1, 0x11, -1 };
 static struct msm_otg_platform_data msm_otg_pdata = {
 	.phy_init_seq		= holiday_phy_init_seq,
-	.mode			= USB_PERIPHERAL,
+	.mode			= USB_OTG,
 	.otg_control		= OTG_PMIC_CONTROL,
 	.phy_type		= CI_45NM_INTEGRATED_PHY,
 	.vbus_power		= msm_hsusb_vbus_power,
@@ -1422,7 +1423,21 @@ static int usb_diag_update_pid_and_serial_num(uint32_t pid, const char *snum)
 }
 
 static struct android_usb_platform_data android_usb_pdata = {
+	.vendor_id	= 0x0BB4,
+	.product_id	= 0x0cbb,
+	.version	= 0x0100,
+	.product_name		= "Android Phone",
+	.manufacturer_name	= "HTC",
+	.num_products = ARRAY_SIZE(usb_products),
+	.products = usb_products,
+	.num_functions = ARRAY_SIZE(usb_functions_all),
+	.functions = usb_functions_all,
+	.enable_fast_charge = NULL,
 	.update_pid_and_serial_num = usb_diag_update_pid_and_serial_num,
+	.fserial_init_string = "sdio:modem,tty,tty,tty:serial",
+	.usb_id_pin_gpio = HOLIDAY_GPIO_USB_ID,
+	.RndisDisableMPDecision = true,
+	.nluns = 2,
 };
 
 static struct platform_device android_usb_device = {
@@ -1453,6 +1468,7 @@ void holiday_enable_fast_charge(bool enable)
 
 static int __init board_serialno_setup(char *serialno)
 {
+	android_usb_pdata.serial_number = serialno;
 	return 1;
 }
 __setup("androidboot.serialno=", board_serialno_setup);
@@ -1460,8 +1476,17 @@ __setup("androidboot.serialno=", board_serialno_setup);
 static void holiday_add_usb_devices(void)
 {
 	printk(KERN_INFO "%s rev: %d\n", __func__, system_rev);
+	android_usb_pdata.products[0].product_id =
+		android_usb_pdata.product_id;
 
 	config_holiday_mhl_gpios();
+
+	/* diag bit set */
+	if (get_radio_flag() & 0x20000) {
+		android_usb_pdata.diag_init = 1;
+		android_usb_pdata.modem_init = 1;
+		android_usb_pdata.rmnet_init = 1;
+	}
 
 	msm_device_gadget_peripheral.dev.parent = &msm_device_otg.dev;
 	platform_device_register(&msm_device_gadget_peripheral);
@@ -6808,6 +6833,7 @@ static struct platform_device *holiday_devices[] __initdata = {
 
 #if defined(CONFIG_USB_GADGET_MSM_72K) || defined(CONFIG_USB_EHCI_HCD)
 	&msm_device_otg,
+	&msm_device_hsusb_host,
 #endif
 #ifdef CONFIG_BATTERY_MSM
 	&msm_batt_device,
@@ -6883,7 +6909,6 @@ static struct platform_device *holiday_devices[] __initdata = {
 
 	//&msm_tsens_device,
 	&msm_rpm_device,
-
 #ifdef CONFIG_BATTERY_MSM8X60
 	&msm_charger_device,
 #endif
