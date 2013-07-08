@@ -28,6 +28,8 @@
 #include <linux/msm_adc.h>
 #include <linux/m_adcproc.h>
 #include <linux/mfd/marimba.h>
+#include <linux/ion.h>
+#include <mach/ion.h>
 #include <linux/isl29028.h>
 #include <linux/isl29029.h>
 #include <linux/mpu.h>

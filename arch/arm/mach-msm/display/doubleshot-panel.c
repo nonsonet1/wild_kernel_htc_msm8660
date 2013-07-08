@@ -25,7 +25,6 @@
 #include <linux/spi/spi.h>
 #include <linux/platform_device.h>
 #include <linux/regulator/consumer.h>
-#include <mach/msm_fb.h>
 #include <mach/msm_iomap.h>
 #include <mach/panel_id.h>
 #include <mach/msm_bus_board.h>
@@ -35,6 +34,9 @@
 #include "../board-doubleshot.h"
 #include "../devices-msm8x60.h"
 #include "../../../../drivers/video/msm/mdp_hw.h"
+#include "../../../../drivers/video/msm/msm_fb.h"
+#include "../../../../drivers/video/msm/mipi_dsi.h"
+#include "../../../../drivers/video/msm/mdp4.h"
 
 //extern int panel_type;
 
