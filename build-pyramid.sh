@@ -2,9 +2,9 @@
 
 #### FOR DEVELOPING ONLY DOES NOT CONTAIN 99kernel INIT SCRIPT TO CONFIG THE KERNEL. ASSUMES YOU ARE DOING A DIRTY FLASH ####
 
-## date format ##
-NOW=$(date +"%F")
-NOWT=$(date +"%T")
+## time start ##
+
+time_start=$(date +%s.%N)
 
 # Number of jobs (usually the number of cores your CPU has (if Hyperthreading count each core as 2))
 MAKE="4"
@@ -15,7 +15,6 @@ export ARCH=arm
 export CROSS_COMPILE=$HOME/android/system/prebuilt/linux-x86/toolchain/linaro-arm-cortex-a8/bin/arm-cortex_a8-linux-gnueabi-
 
 ## Build kernel using pyramid_defconfig
-make mrproper
 make pyramid_defconfig
 make -j$MAKE ARCH=arm
 sleep 1
@@ -39,7 +38,11 @@ cp arch/arm/boot/zImage $HOME/KERNEL/out/kernel/
 # build flashable zip
 
 cd $HOME/KERNEL/out/
-zip -9 -r $HOME/ChronicBruce-dev-$NOW-$NOWT.zip .
+zip -9 -r $HOME/pyramid-kernel-dev-$curdate.zip .
 echo Deleting Temp files and folders....
 rm -rf $HOME/KERNEL/
-echo Build Complete, Check your Home directory for a flashable zip
+echo "Build Complete, Check your Home directory for a flashable zip"
+time_end=$(date +%s.%N)
+echo -e "${BLDYLW}Total time elapsed: ${TCTCLR}${TXTGRN}$(echo "($time_end - $time_start) / 60"|bc ) ${TXTYLW}minutes${TXTGRN} ($(echo "$time_end - $time_start"|bc ) ${TXTYLW}seconds) ${TXTCLR}"
+
+
