@@ -2235,18 +2235,16 @@ static void __init msm8x60_init_dsps(void)
 /* Note: must be multiple of 4096 */
 #define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + MSM_FB_EXT_BUF_SIZE, 4096)
 
-#define MSM_PMEM_SF_SIZE			0x2000000 /* 32 Mbytes */
-#define MSM_PMEM_ADSP_SIZE			0x2700000
-#define MSM_PMEM_ADSP2_SIZE			0x800000 /* 1152 * 1920 * 1.5 * 2 */
+#define MSM_PMEM_SF_SIZE			0x4000000 /* 64 Mbytes */
+#define MSM_PMEM_ADSP_SIZE			0x239C000
+#define MSM_PMEM_ADSP2_SIZE			0x664000 /* ((1408 * 792 * 1.5) Align 2K) * 2 * 2 */
 #define MSM_PMEM_AUDIO_SIZE			0x239000
-#define MSM_PMEM_TZCOM_SIZE			0xC7000
 #define MSM_PMEM_SF_BASE			(0x40400000)
-#define MSM_PMEM_ADSP2_BASE			(0x80000000 - MSM_PMEM_ADSP2_SIZE)
-#define MSM_PMEM_ADSP_BASE			(MSM_PMEM_ADSP2_BASE - MSM_PMEM_ADSP_SIZE)
-#define MSM_PMEM_TZCOM_BASE			(MSM_PMEM_SF_BASE + MSM_PMEM_SF_SIZE)
-#define MSM_FB_WRITEBACK_BASE			(MSM_PMEM_TZCOM_BASE + MSM_PMEM_TZCOM_SIZE)
-#define MSM_FB_BASE				(MSM_FB_WRITEBACK_BASE + MSM_FB_WRITEBACK_SIZE)
-#define MSM_PMEM_AUDIO_BASE			(MSM_FB_BASE + MSM_FB_SIZE)
+#define MSM_FB_BASE			        (0x80000000 - MSM_FB_SIZE)
+#define MSM_PMEM_ADSP_BASE		        (MSM_PMEM_ADSP2_BASE - MSM_PMEM_ADSP_SIZE)
+#define MSM_FB_WRITEBACK_BASE			(MSM_PMEM_SF_BASE + MSM_PMEM_SF_SIZE)
+#define MSM_PMEM_ADSP2_BASE			(MSM_FB_BASE + MSM_FB_SIZE)
+#define MSM_PMEM_AUDIO_BASE			(MSM_FB_WRITEBACK_BASE + MSM_FB_WRITEBACK_SIZE)
 #define MSM_SMI_BASE				0x38000000
 #define MSM_SMI_SIZE				0x4000000
 #define KERNEL_SMI_BASE			 	(MSM_SMI_BASE)
@@ -6888,12 +6886,6 @@ static struct memtype_reserve msm8x60_reserve_table[] __initdata = {
 	[MEMTYPE_EBI0] = {
 		.flags	=	MEMTYPE_FLAGS_1M_ALIGN,
 	},
-	[MEMTYPE_EBI1] = {
-		.start	=	MSM_PMEM_TZCOM_BASE,
-		.limit	=	MSM_PMEM_TZCOM_SIZE,
-		.size	=	MSM_PMEM_TZCOM_SIZE,
-		.flags	=	MEMTYPE_FLAGS_FIXED,
-	},
 };
 
 static void __init size_pmem_device(struct android_pmem_platform_data *pdata, unsigned long start, unsigned long size)
@@ -7264,7 +7256,7 @@ static void __init holiday_init(void)
 }
 
 #define PHY_BASE_ADDR1  0x48000000
-#define SIZE_ADDR1	  0x35100000
+#define SIZE_ADDR1	  0x32F00000
 
 static void __init holiday_fixup(struct machine_desc *desc, struct tag *tags,
 				 char **cmdline, struct meminfo *mi)
