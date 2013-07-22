@@ -2223,26 +2223,15 @@ static void __init msm8x60_init_dsps(void)
 #define MSM_FB_EXT_BUFT_SIZE    0
 #endif
 
-#ifdef CONFIG_FB_MSM_OVERLAY_WRITEBACK
-/* width x height x 3 bpp x 2 frame buffer */
-#define MSM_FB_WRITEBACK_SIZE   0
-#define MSM_FB_WRITEBACK_OFFSET 0
-#else
-#define MSM_FB_WRITEBACK_SIZE   0
-#define MSM_FB_WRITEBACK_OFFSET 0
-#endif
 
 /* Note: must be multiple of 4096 */
 #define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + MSM_FB_EXT_BUF_SIZE, 4096)
 
 #define MSM_PMEM_SF_SIZE			0x4000000 /* 64 Mbytes */
 #define MSM_PMEM_ADSP_SIZE			0x239C000
-#define MSM_PMEM_ADSP2_SIZE			0 /* ((1408 * 792 * 1.5) Align 2K) * 2 * 2 */
 #define MSM_PMEM_AUDIO_SIZE			0x239000
 #define MSM_PMEM_SF_BASE			(MSM_FB_BASE - MSM_PMEM_SF_SIZE)
 #define MSM_FB_BASE			        (0x80000000 - MSM_FB_SIZE)
-#define MSM_PMEM_ADSP2_BASE			(MSM_PMEM_ADSP2_SIZE)
-#define MSM_FB_WRITEBACK_BASE		        (MSM_FB_WRITEBACK_SIZE)
 #define MSM_PMEM_ADSP_BASE			(0x40400000)
 #define MSM_PMEM_AUDIO_BASE			(MSM_PMEM_ADSP_BASE + MSM_PMEM_ADSP_SIZE)
 #define MSM_SMI_BASE				0x38000000
@@ -2315,18 +2304,6 @@ static struct platform_device android_pmem_adsp_device = {
 	.name = "android_pmem",
 	.id = 2,
 	.dev = { .platform_data = &android_pmem_adsp_pdata },
-};
-
-static struct android_pmem_platform_data android_pmem_adsp2_pdata = {
-	.name = "pmem_adsp2",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 0,
-};
-
-static struct platform_device android_pmem_adsp2_device = {
-	.name = "android_pmem",
-	.id = 3,
-	.dev = { .platform_data = &android_pmem_adsp2_pdata },
 };
 
 static struct android_pmem_platform_data android_pmem_audio_pdata = {
@@ -2462,13 +2439,6 @@ static void __init msm8x60_allocate_memory_regions(void)
 	pr_info("allocating %lu bytes at %p (%lx physical) for fb\n",
 		size, __va(MSM_FB_BASE), (unsigned long)MSM_FB_BASE);
 
-#ifdef CONFIG_FB_MSM_OVERLAY_WRITEBACK
-        size = MSM_FB_WRITEBACK_SIZE;
-        msm_fb_resources[1].start = MSM_FB_WRITEBACK_BASE;
-        msm_fb_resources[1].end = msm_fb_resources[1].start + size - 1;
-        pr_info("allocating %lu bytes at 0x%p (0x%lx physical) for overlay\n",
-                size, __va(MSM_FB_WRITEBACK_BASE), (unsigned long) MSM_FB_WRITEBACK_BASE);
-#endif
 }
 
 
@@ -6781,7 +6751,6 @@ static struct platform_device *holiday_devices[] __initdata = {
 #ifdef CONFIG_ANDROID_PMEM
 	&android_pmem_sf_device,
 	&android_pmem_adsp_device,
-	&android_pmem_adsp2_device,
 	&android_pmem_audio_device,
 	&android_pmem_smipool_device,
 #endif
@@ -6900,7 +6869,6 @@ static void __init size_pmem_devices(void)
 {
 #ifdef CONFIG_ANDROID_PMEM
 	size_pmem_device(&android_pmem_adsp_pdata, MSM_PMEM_ADSP_BASE, pmem_adsp_size);
-	size_pmem_device(&android_pmem_adsp2_pdata, MSM_PMEM_ADSP2_BASE, MSM_PMEM_ADSP2_SIZE);
 	size_pmem_device(&android_pmem_smipool_pdata, MSM_PMEM_SMIPOOL_BASE, MSM_PMEM_SMIPOOL_SIZE);
 	size_pmem_device(&android_pmem_audio_pdata, MSM_PMEM_AUDIO_BASE, pmem_audio_size);
 	size_pmem_device(&android_pmem_sf_pdata, MSM_PMEM_SF_BASE, pmem_sf_size);
