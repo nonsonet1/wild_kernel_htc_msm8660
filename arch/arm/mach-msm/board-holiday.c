@@ -2225,7 +2225,7 @@ static void __init msm8x60_init_dsps(void)
 
 #ifdef CONFIG_FB_MSM_OVERLAY_WRITEBACK
 /* width x height x 3 bpp x 2 frame buffer */
-#define MSM_FB_WRITEBACK_SIZE roundup(960 * ALIGN(540, 32) * 3 * 2, 4096)
+#define MSM_FB_WRITEBACK_SIZE   0
 #define MSM_FB_WRITEBACK_OFFSET 0
 #else
 #define MSM_FB_WRITEBACK_SIZE   0
@@ -2236,15 +2236,15 @@ static void __init msm8x60_init_dsps(void)
 #define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + MSM_FB_EXT_BUF_SIZE, 4096)
 
 #define MSM_PMEM_SF_SIZE			0x4000000 /* 64 Mbytes */
-#define MSM_PMEM_ADSP_SIZE			0x1CB0000
+#define MSM_PMEM_ADSP_SIZE			0x239C000
 #define MSM_PMEM_ADSP2_SIZE			0 /* ((1408 * 792 * 1.5) Align 2K) * 2 * 2 */
 #define MSM_PMEM_AUDIO_SIZE			0x239000
-#define MSM_PMEM_SF_BASE			(0x40400000)
+#define MSM_PMEM_SF_BASE			(MSM_FB_BASE - MSM_PMEM_SF_SIZE)
 #define MSM_FB_BASE			        (0x80000000 - MSM_FB_SIZE)
 #define MSM_PMEM_ADSP2_BASE			(MSM_PMEM_ADSP2_SIZE)
-#define MSM_PMEM_ADSP_BASE		        (MSM_FB_BASE - MSM_PMEM_ADSP_SIZE)
-#define MSM_FB_WRITEBACK_BASE			(MSM_PMEM_SF_BASE + MSM_PMEM_SF_SIZE)
-#define MSM_PMEM_AUDIO_BASE			(MSM_FB_WRITEBACK_BASE + MSM_FB_WRITEBACK_SIZE)
+#define MSM_FB_WRITEBACK_BASE		        (MSM_FB_WRITEBACK_SIZE)
+#define MSM_PMEM_ADSP_BASE			(0x40400000)
+#define MSM_PMEM_AUDIO_BASE			(MSM_PMEM_ADSP_BASE + MSM_PMEM_ADSP_SIZE)
 #define MSM_SMI_BASE				0x38000000
 #define MSM_SMI_SIZE				0x4000000
 #define KERNEL_SMI_BASE			 	(MSM_SMI_BASE)
@@ -7256,7 +7256,7 @@ static void __init holiday_init(void)
 }
 
 #define PHY_BASE_ADDR1  0x48000000
-#define SIZE_ADDR1	  0x32F00000
+#define SIZE_ADDR1	  0x32B00000
 
 static void __init holiday_fixup(struct machine_desc *desc, struct tag *tags,
 				 char **cmdline, struct meminfo *mi)
