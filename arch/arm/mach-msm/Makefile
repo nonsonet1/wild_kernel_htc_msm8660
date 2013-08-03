@@ -364,6 +364,14 @@ obj-$(CONFIG_MACH_PYRAMID) += board-pyramid-mmc.o board-pyramid-wifi.o htc_wifi_
 obj-$(CONFIG_MACH_PYRAMID) += htc_util.o
 obj-$(CONFIG_MACH_PYRAMID) += board-pyramid-audio.o
 
+obj-$(CONFIG_MACH_RUBY) += board-ruby.o devices_htc.o
+obj-$(CONFIG_MACH_RUBY) += board-ruby-keypad.o 
+obj-$(CONFIG_MACH_RUBY) += board-ruby-camera.o htc_awb_cal.o
+obj-$(CONFIG_MACH_RUBY) += htc_bdaddress.o board-ruby-rfkill.o
+obj-$(CONFIG_MACH_RUBY) += board-ruby-mmc.o board-ruby-wifi.o htc_wifi_nvs.o
+obj-$(CONFIG_MACH_RUBY) += htc_util.o
+obj-$(CONFIG_MACH_RUBY) += board-ruby-audio.o
+
 obj-$(CONFIG_MACH_SHOOTER) += board-shooter.o
 obj-$(CONFIG_MACH_SHOOTER) += board-shooter-keypad.o
 obj-$(CONFIG_MACH_SHOOTER) += board-shooter-audio.o

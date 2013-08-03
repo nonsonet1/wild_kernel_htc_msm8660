@@ -2617,6 +2617,13 @@ config MACH_PYRAMID
 	help
 	  Support for the Pyramid device.
 
+config MACH_RUBY
+	depends on ARCH_MSM8X60
+	default n
+	bool "Ruby"
+	help
+	  Support for the Ruby device.
+
 config MACH_SHOOTER
 	depends on ARCH_MSM8X60
 	default n
