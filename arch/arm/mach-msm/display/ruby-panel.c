@@ -66,43 +66,11 @@ static struct mipi_dsi_platform_data mipi_dsi_pdata = {
 };
 
 static char led_pwm1[] = {0x51, 0x0};
-static char led_pwm2[] = {0x53, 0x24};
-static char led_pwm3[] = {0x55, 0x00};
-
-static char test_reg[3] = {0x44, 0x02, 0xCF};/* DTYPE_DCS_LWRITE */
-static char test_reg_qhd[3] = {0x44, 0x01, 0x3f};/* DTYPE_DCS_LWRITE */ /* 479:1b7; 319:13f; 479:1df */
 static char test_reg_ruy_shp[3] = {0x44, 0x01, 0x68};/* DTYPE_DCS_LWRITE */
-static char test_reg_ruy_auo[3] = {0x44, 0x01, 0x68};/* DTYPE_DCS_LWRITE */
-
-static char set_twolane[2] = {0xae, 0x03}; /* DTYPE_DCS_WRITE1 */
-static char rgb_888[2] = {0x3A, 0x77}; /* DTYPE_DCS_WRITE1 */
-static char novatek_f4[2] = {0xf4, 0x55}; /* DTYPE_DCS_WRITE1 */
-static char novatek_8c[16] = { /* DTYPE_DCS_LWRITE */
-	0x8C, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x08, 0x08, 0x00, 0x30, 0xC0, 0xB7, 0x37};
-static char novatek_ff[2] = {0xff, 0x55 }; /* DTYPE_DCS_WRITE1 */
-
-static char set_width[5] = { /* DTYPE_DCS_LWRITE */
-	0x2A, 0x00, 0x00, 0x02, 0x1B}; /* 540 - 1 */
-static char set_height[5] = { /* DTYPE_DCS_LWRITE */
-	0x2B, 0x00, 0x00, 0x03, 0xBF}; /* 960 - 1 */
-
-static char novatek_pwm_f3[2] = {0xF3, 0xAA }; /* DTYPE_DCS_WRITE1 */
-static char novatek_pwm_00[2] = {0x00, 0x01 }; /* DTYPE_DCS_WRITE1 */
-static char novatek_pwm_21[2] = {0x21, 0x20 }; /* DTYPE_DCS_WRITE1 */
-static char novatek_pwm_22[2] = {0x22, 0x03 }; /* DTYPE_DCS_WRITE1 */
-static char novatek_pwm_7d[2] = {0x7D, 0x01 }; /* DTYPE_DCS_WRITE1 */
-static char novatek_pwm_7f[2] = {0x7F, 0xAA }; /* DTYPE_DCS_WRITE1 */
-
-static char novatek_pwm_cp[2] = {0x09, 0x34 }; /* DTYPE_DCS_WRITE1 */
-static char novatek_pwm_cp2[2] = {0xc9, 0x01 }; /* DTYPE_DCS_WRITE1 */
-static char novatek_pwm_cp3[2] = {0xff, 0xaa }; /* DTYPE_DCS_WRITE1 */
-
-static char maucctr_0[6] = {0xF0, 0x55, 0xAA, 0x52, 0x08, 0x00};/* DTYPE_DCS_LWRITE */
-static char maucctr_1[6] = {0xF0, 0x55, 0xAA, 0x52, 0x08, 0x01}; /* DTYPE_DCS_LWRITE */
-static char novatek_b5x[4] = {0xB5, 0x05, 0x05, 0x05}; /* DTYPE_DCS_LWRITE */
-static char novatek_ce[8] = {0xCE, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; /* DTYPE_DCS_LWRITE */
-static char novatek_e0[3] = {0xE0, 0x01, 0x03}; /* DTYPE_DCS_LWRITE */
+static char set_width[5] = {0x2A, 0x00, 0x00, 0x02, 0x1B};
+static char set_height[5] = {0x2B, 0x00, 0x00, 0x03, 0xBF};
+static char novatek_e0[3] = {0xE0, 0x01, 0x03};
+static char max_pktsize[2] = {MIPI_DSI_MRPS, 0x00};
 
 static char ruy_shp_gamma1_d1[] = {
 	0xD1, 0x00, 0x6D, 0x00,	0x76, 0x00, 0x88, 0x00,
@@ -445,6 +413,8 @@ static struct dsi_cmd_desc ruy_shp_cmd_on_cmds[] = {
 		sizeof(set_width), set_width },
 	{ DTYPE_DCS_LWRITE, 1, 0, 0, 0,
 		sizeof(set_height), set_height },
+	{ DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(display_on), display_on },
 };
 
 static struct dsi_cmd_desc ruy_shp_c2_cmd_on_cmds[] = {
@@ -516,6 +486,8 @@ static struct dsi_cmd_desc ruy_shp_c2_cmd_on_cmds[] = {
 		sizeof(set_width), set_width },
 	{ DTYPE_DCS_LWRITE, 1, 0, 0, 0,
 		sizeof(set_height), set_height },
+	{ DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(display_on), display_on },
 };
 
 static struct dsi_cmd_desc ruy_shp_c2o_cmd_on_cmds[] = {
@@ -555,6 +527,8 @@ static struct dsi_cmd_desc ruy_shp_c2o_cmd_on_cmds[] = {
 		sizeof(set_width), set_width },
 	{ DTYPE_DCS_LWRITE, 1, 0, 0, 0,
 		sizeof(set_height), set_height },
+	{ DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(display_on), display_on },
 };
 
 static struct dsi_cmd_desc ruby_display_off_cmds[] = {
@@ -563,39 +537,6 @@ static struct dsi_cmd_desc ruby_display_off_cmds[] = {
 		{DTYPE_DCS_WRITE, 1, 0, 0, 110,
 			sizeof(enter_sleep), enter_sleep}
 };
-
-static char manufacture_id[2] = {0x04, 0x00}; 
-
-static struct dsi_cmd_desc novatek_manufacture_id_cmd = {
-	DTYPE_DCS_READ, 1, 0, 1, 5, sizeof(manufacture_id), manufacture_id};
-
-static struct mipi_dsi_phy_ctrl novatek_dsi_cmd_mode_phy_db = {
-		{0x03, 0x01, 0x01, 0x00},
-		{0x96, 0x1E, 0x1E, 0x00, 0x3C, 0x3C, 0x1E, 0x28,
-		0x0b, 0x13, 0x04},
-		{0x7f, 0x00, 0x00, 0x00},
-		{0xee, 0x02, 0x86, 0x00},
-		{0x41, 0x9c, 0xb9, 0xd6, 0x00, 0x50, 0x48, 0x63, 0x01, 0x0f, 0x07,
-		0x05, 0x14, 0x03, 0x03, 0x03, 0x54, 0x06, 0x10, 0x04, 0x03 },
-};
-
-static void mipi_novatek_manufature_cb(u32 data)
-{
-	manu_id = data;
-	pr_info("%s: manufature_id=%x\n", __func__, manu_id);
-}
-
-static uint32 mipi_novatek_manufacture_id(struct msm_fb_data_type *mfd)
-{
-	cmdreq.cmds = &novatek_manufacture_id_cmd;
-	cmdreq.cmds_cnt = 1;
-	cmdreq.flags = CMD_REQ_RX | CMD_REQ_COMMIT;
-	cmdreq.rlen = 3;
-	cmdreq.cb = mipi_shooter_manufature_cb;
-	mipi_dsi_cmdlist_put(&cmdreq);
-
-	return manu_id;
-}
 
 #define BRI_SETTING_MIN           30
 #define BRI_SETTING_DEF           143
@@ -631,7 +572,17 @@ static unsigned char ruby_shrink_pwm(int val)
 	return shrink_br;
 }
 
-static int mipi_cmd_samsung_blue_qhd_pt_init(void)
+static struct mipi_dsi_phy_ctrl novatek_dsi_cmd_mode_phy_db = {
+		{0x03, 0x01, 0x01, 0x00},
+		{0x96, 0x1E, 0x1E, 0x00, 0x3C, 0x3C, 0x1E, 0x28,
+		0x0b, 0x13, 0x04},
+		{0x7f, 0x00, 0x00, 0x00},
+		{0xee, 0x02, 0x86, 0x00},
+		{0x41, 0x9c, 0xb9, 0xd6, 0x00, 0x50, 0x48, 0x63,0x01, 0x0f, 0x07,
+		0x05, 0x14, 0x03, 0x03, 0x03, 0x54, 0x06, 0x10, 0x04, 0x03 },
+};
+
+static int mipi_cmd_novatek_blue_qhd_pt_init(void)
 {
 	int ret;
 
@@ -700,6 +651,7 @@ static inline void ruby_mipi_dsi_set_backlight(struct msm_fb_data_type *mfd)
 	if (panel_type == PANEL_ID_RUY_SHARP_NT ||
 		panel_type == PANEL_ID_RUY_SHARP_NT_C2 || panel_type == PANEL_ID_RUY_SHARP_NT_C2O) {
 		ruby_shrink_pwm(mfd->bl_level);
+	}
 
 	if (panel_type == PANEL_ID_RUY_SHARP_NT ||
 		panel_type == PANEL_ID_RUY_SHARP_NT_C2 || panel_type == PANEL_ID_RUY_SHARP_NT_C2O) {
@@ -731,7 +683,6 @@ static int ruby_lcd_on(struct platform_device *pdev)
 		PR_DISP_ERR("%s: not support DSI_VIDEO_MODE!(%d)", __func__, mipi->mode);
 	} else {
 		if (!mipi_lcd_on) {
-			mipi_dsi_cmd_bta_sw_trigger();
 			if (panel_type == PANEL_ID_RUY_SHARP_NT) {
 				printk(KERN_INFO "ruby_lcd_on PANEL_ID_RUY_SHARP_NT\n");
 				cmdreq.cmds = ruy_shp_cmd_on_cmds;
@@ -742,16 +693,16 @@ static int ruby_lcd_on(struct platform_device *pdev)
 				mipi_dsi_cmdlist_put(&cmdreq);
 			} else if (panel_type == PANEL_ID_RUY_SHARP_NT_C2) {
 				printk(KERN_INFO "ruby_lcd_on PANEL_ID_RUY_SHARP_NT\n");
-				cmdreq.cmds = ruy_shp_cmd_on_cmds;
-				cmdreq.cmds_cnt = ARRAY_SIZE(ruy_shp_cmd_on_cmds);
+				cmdreq.cmds = ruy_shp_c2_cmd_on_cmds;
+				cmdreq.cmds_cnt = ARRAY_SIZE(ruy_shp_c2_cmd_on_cmds);
 				cmdreq.flags = CMD_REQ_COMMIT;
 				cmdreq.rlen = 0;
 				cmdreq.cb = NULL;
 				mipi_dsi_cmdlist_put(&cmdreq);
 			} else if (panel_type == PANEL_ID_RUY_SHARP_NT_C2O) {
 				printk(KERN_INFO "ruby_lcd_on PANEL_ID_RUY_SHARP_NT\n");
-				cmdreq.cmds = ruy_shp_cmd_on_cmds;
-				cmdreq.cmds_cnt = ARRAY_SIZE(ruy_shp_cmd_on_cmds);
+				cmdreq.cmds = ruy_shp_c2o_cmd_on_cmds;
+				cmdreq.cmds_cnt = ARRAY_SIZE(ruy_shp_c2o_cmd_on_cmds);
 				cmdreq.flags = CMD_REQ_COMMIT;
 				cmdreq.rlen = 0;
 				cmdreq.cb = NULL;
@@ -760,9 +711,6 @@ static int ruby_lcd_on(struct platform_device *pdev)
 				PR_DISP_ERR("%s: panel_type is not supported!(%d)", __func__, panel_type);
 			}
 		}
-		mipi_dsi_cmd_bta_sw_trigger(); 
-
-		mipi_novatek_manufacture_id(mfd);
 	}
 	mipi_lcd_on = 1;
 
@@ -796,7 +744,6 @@ static void ruby_display_on(struct msm_fb_data_type *mfd)
 		cmdreq.cb = NULL;
 		mipi_dsi_cmdlist_put(&cmdreq);
 	}
-
 	cur_bl_level = 0;
 }
 
@@ -906,7 +853,7 @@ err_device_put:
 static int mipi_dsi_panel_power(const int on)
 {
 	static bool dsi_power_on = false;
-	static struct regulator *v_lcm, *v_lcmio, *v_dsivdd;
+	static struct regulator *v_lcm, *v_dsivdd;
 	static bool bPanelPowerOn = false;
 	int rc;
 
@@ -1044,7 +991,7 @@ static int __init ruby_panel_late_init(void)
 
 	if (panel_type == PANEL_ID_RUY_SHARP_NT ||
 		panel_type == PANEL_ID_RUY_SHARP_NT_C2 || panel_type == PANEL_ID_RUY_SHARP_NT_C2O) {
-		mipi_cmd_samsung_blue_qhd_pt_init();
+		mipi_cmd_novatek_blue_qhd_pt_init();
 	}
 
 	return platform_driver_register(&this_driver);

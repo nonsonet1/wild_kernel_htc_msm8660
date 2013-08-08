@@ -58,18 +58,6 @@ static struct gpio_event_direct_entry ruby_keypad_input_map[] = {
 		.gpio = RUBY_GPIO_KEY_VOL_DOWN,
 		.code = KEY_VOLUMEDOWN,
 	},
-	{
-		.gpio = PM8058_GPIO_PM_TO_SYS(RUBY_GPIO_KEY_CAMCODER),
-		.code = KEY_CAMCORDER,
-	},
-	{
-		.gpio = RUBY_GPIO_KEY_CAPTURE,
-		.code = KEY_CAMERA,
-	},
-	{
-		.gpio = PM8058_GPIO_PM_TO_SYS(RUBY_GPIO_KEY_CAMAF),
-		.code = KEY_HP,
-	},
 };
 
 static void ruby_setup_input_gpio(void)
@@ -81,8 +69,6 @@ static void ruby_setup_input_gpio(void)
 			GPIO_CFG_PULL_UP, GPIO_CFG_4MA),
 		GPIO_CFG(RUBY_GPIO_KEY_VOL_DOWN, 0, GPIO_CFG_INPUT,
 			GPIO_CFG_PULL_UP, GPIO_CFG_4MA),
-		GPIO_CFG(RUBY_GPIO_KEY_CAPTURE, 0, GPIO_CFG_INPUT,
-			GPIO_CFG_PULL_UP, GPIO_CFG_4MA),
 	};
 
 	config_gpio_table(inputs_gpio_table, ARRAY_SIZE(inputs_gpio_table));
@@ -93,10 +79,10 @@ static struct gpio_event_input_info ruby_keypad_input_info = {
 	.flags = GPIOEDF_PRINT_KEYS,
 	.type = EV_KEY,
 #if BITS_PER_LONG != 64 && !defined(CONFIG_KTIME_SCALAR)
-	.debounce_time.tv.nsec = 5 * NSEC_PER_MSEC,
-#else
-	.debounce_time.tv64 = 5 * NSEC_PER_MSEC,
-#endif
+	.debounce_time.tv.nsec = 20 * NSEC_PER_MSEC,
+# else
+	.debounce_time.tv64 = 20 * NSEC_PER_MSEC,
+# endif
 	.keymap = ruby_keypad_input_map,
 	.keymap_size = ARRAY_SIZE(ruby_keypad_input_map),
 	.setup_input_gpio = ruby_setup_input_gpio,
@@ -122,14 +108,8 @@ static struct platform_device ruby_keypad_input_device = {
 		.platform_data	= &ruby_keypad_data,
 	},
 };
-/*
-static int ruby_reset_keys_up[] = {
-	KEY_VOLUMEUP,
-	0
-};
-*/
+
 static struct keyreset_platform_data ruby_reset_keys_pdata = {
-	/*.keys_up = ruby_reset_keys_up,*/
 	.keys_down = {
 		KEY_POWER,
 		KEY_VOLUMEDOWN,

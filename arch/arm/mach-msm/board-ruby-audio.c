@@ -33,7 +33,6 @@
 #include <mach/htc_acoustic_8x60.h>
 
 #include "board-ruby.h"
-#include "board-ruby-audio-data.h"
 
 #define PM8058_GPIO_BASE					NR_MSM_GPIOS
 #define PM8058_GPIO_PM_TO_SYS(pm_gpio)		(pm_gpio + PM8058_GPIO_BASE)
@@ -49,14 +48,12 @@ static atomic_t aic3254_ctl = ATOMIC_INIT(0);
 #define BIT_FM_SPK	(1 << 3)
 #define BIT_FM_HS	(1 << 4)
 
-/* function prototype */
 void ruby_snddev_bmic_pamp_on(int);
 
 static uint32_t msm_codec_reset_gpio[] = {
-	/* AIC3254 Reset */
 	GPIO_CFG(RUBY_AUD_CODEC_RST, 0, GPIO_CFG_OUTPUT,
 		GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
-	/* Timpani Reset */
+
 	GPIO_CFG(RUBY_AUD_QTR_RESET, 0, GPIO_CFG_OUTPUT,
 		GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
 };
@@ -131,12 +128,6 @@ void ruby_snddev_receiver_pamp_on(int en)
 	}
 }
 
-void ruby_snddev_bt_sco_pamp_on(int en)
-{
-	/* to be implemented */
-}
-
-/* power on/off externnal mic bias */
 static struct regulator *vreg_l2;
 void ruby_mic_enable(int en, int shift)
 {
@@ -191,13 +182,12 @@ vreg_fail:
 
 static struct regulator *vreg_l5 = NULL;
 
-/* To avoid TX no sound when enter suspend */
 void ruby_snddev_tx_pamp_on(int en)
 {
 	int rc = 0;
 	int call_state = 0;
 
-	call_state = msm_get_call_state(); /* check if incall */
+	call_state = msm_get_call_state();
 
 	if (!call_state)
 		return;
@@ -243,7 +233,6 @@ void ruby_snddev_imic_pamp_on(int en)
 			pr_aud_err("%s: Enabling int mic power failed\n", __func__);
 	}
 
-	/* power up second mic at same time becuase don't support separate scenario */
 	ruby_snddev_bmic_pamp_on(en);
 	ruby_snddev_tx_pamp_on(en);
 }
@@ -270,10 +259,8 @@ void ruby_snddev_emic_pamp_on(int en)
 	pr_aud_info("%s %d\n", __func__, en);
 
 	if (en) {
-		/* pull gpio high to do input mic selection */
 		gpio_set_value(PM8058_GPIO_PM_TO_SYS(RUBY_AUD_MIC_SEL), 1);
 	} else {
-		/* pull gpio down in default which input from back mic */
 		gpio_set_value(PM8058_GPIO_PM_TO_SYS(RUBY_AUD_MIC_SEL), 0);
 	}
 	ruby_snddev_tx_pamp_on(en);
@@ -385,8 +372,6 @@ int ruby_get_rx_vol(uint8_t hw, int network, int level)
 {
 	int vol = 0;
 
-	/* to be implemented */
-
 	pr_aud_info("%s(%d, %d, %d) => %d\n", __func__, hw, network, level, vol);
 
 	return vol;
@@ -434,7 +419,6 @@ int ruby_support_audience(void)
 
 int ruby_is_msm_i2s_slave(void)
 {
-	/* 1 - CPU slave, 0 - CPU master */
 	return 1;
 }
 
@@ -471,7 +455,6 @@ void ruby_spibus_enable(int en)
 
 void ruby_get_acoustic_tables(struct acoustic_tables *tb)
 {
-	/* clean name buffer */
 	memset(tb->aic3254, 0, PROPERTY_VALUE_MAX);
 	memset(tb->adie, 0, PROPERTY_VALUE_MAX);
 	memset(tb->spkamp, 0, PROPERTY_VALUE_MAX);
@@ -480,8 +463,6 @@ void ruby_get_acoustic_tables(struct acoustic_tables *tb)
 	memset(tb->tpa2026, 0, PROPERTY_VALUE_MAX);
 	memset(tb->tpa2028, 0, PROPERTY_VALUE_MAX);
 
-
-	/* HW version is after XD */
 	if (system_rev > 3)
 		strcpy(tb->aic3254, "AIC3254_REG_DualMic.csv");
 	else
@@ -508,7 +489,6 @@ static struct q6v2audio_analog_ops ops = {
 	.headset_enable	        = ruby_snddev_hsed_pamp_on,
 	.handset_enable	        = ruby_snddev_receiver_pamp_on,
 	.headset_speaker_enable	= ruby_snddev_hs_spk_pamp_on,
-	.bt_sco_enable	        = ruby_snddev_bt_sco_pamp_on,
 	.int_mic_enable         = ruby_snddev_imic_pamp_on,
 	.back_mic_enable        = ruby_snddev_bmic_pamp_on,
 	.ext_mic_enable         = ruby_snddev_emic_pamp_on,
@@ -524,21 +504,10 @@ static struct q6v2audio_icodec_ops iops = {
 	.is_msm_i2s_slave = ruby_is_msm_i2s_slave,
 };
 
-static struct q6v2audio_ecodec_ops eops = {
-	.bt_sco_enable  = ruby_snddev_bt_sco_pamp_on,
-};
-
 static struct aic3254_ctl_ops cops = {
 	.rx_amp_enable        = ruby_rx_amp_enable,
 	.reset_3254           = ruby_reset_3254,
 	.spibus_enable        = ruby_spibus_enable,
-	.lb_dsp_init          = &LOOPBACK_DSP_INIT_PARAM,
-	.lb_receiver_imic     = &LOOPBACK_Receiver_IMIC_PARAM,
-	.lb_speaker_imic      = &LOOPBACK_Speaker_IMIC_PARAM,
-	.lb_headset_emic      = &LOOPBACK_Headset_EMIC_PARAM,
-	.lb_receiver_bmic     = &LOOPBACK_Receiver_BMIC_PARAM,
-	.lb_speaker_bmic      = &LOOPBACK_Speaker_BMIC_PARAM,
-	.lb_headset_bmic      = &LOOPBACK_Headset_BMIC_PARAM,
 };
 
 static struct acoustic_ops acoustic = {
@@ -561,28 +530,18 @@ static struct q6v2audio_aic3254_ops aops = {
 
 void __init ruby_audio_init(void)
 {
-	mutex_init(&bt_sco_lock);
 	mutex_init(&mic_lock);
 
-#ifdef CONFIG_MSM8X60_AUDIO
 	pr_aud_info("%s\n", __func__);
 	htc_8x60_register_analog_ops(&ops);
-	htc_8x60_register_ecodec_ops(&eops);
 	htc_8x60_register_icodec_ops(&iops);
 	acoustic_register_ops(&acoustic);
 	htc_8x60_register_aic3254_ops(&aops);
 	msm_set_voc_freq(8000, 8000);
-#endif
-
 	aic3254_register_ctl_ops(&cops);
-	/* PMIC GPIO Init (See board-ruby.c) */
-	/* Reset AIC3254 */
 	ruby_reset_3254();
-
-	/* Timpani Reset */
 	gpio_tlmm_config(msm_codec_reset_gpio[1], GPIO_CFG_ENABLE);
 	gpio_set_value(RUBY_AUD_QTR_RESET, 0);
 	mdelay(1);
 	gpio_set_value(RUBY_AUD_QTR_RESET, 1);
-
 }
