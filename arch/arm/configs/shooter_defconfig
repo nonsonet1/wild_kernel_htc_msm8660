@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Linux/arm 3.0.73 Kernel Configuration
+# Linux/arm 3.0.85 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -1111,6 +1111,7 @@ CONFIG_EXTRA_FIRMWARE=""
 CONFIG_GENLOCK=y
 CONFIG_GENLOCK_MISCDEVICE=y
 CONFIG_SYNC=y
+# CONFIG_SW_SYNC is not set
 # CONFIG_CONNECTOR is not set
 # CONFIG_MTD is not set
 # CONFIG_PARPORT is not set
@@ -1524,6 +1525,8 @@ CONFIG_INPUT_ISL29029=y
 # CONFIG_AMP_TPA2051D3_ON_GPIO is not set
 # CONFIG_CODEC_AIC3254 is not set
 # CONFIG_CODEC_AIC3008 is not set
+CONFIG_SOUND_CONTROL_HAX_GPL=y
+# CONFIG_SND_CONTROL_HAS_BEATS is not set
 CONFIG_I2C_HELPER_AUTO=y
 
 #
