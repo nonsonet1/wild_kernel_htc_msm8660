@@ -111,6 +111,20 @@ static struct gpiomux_setting tm_suspended = {
 	.pull = GPIOMUX_PULL_NONE,
 };
 
+#ifdef CONFIG_MSM_GSBI9_UART
+static struct gpiomux_setting uart9dm_active = {
+	.func = GPIOMUX_FUNC_1,
+	.drv = GPIOMUX_DRV_8MA ,
+	.pull = GPIOMUX_PULL_NONE,
+};
+
+static struct gpiomux_setting gsbi9 = {
+	.func = GPIOMUX_FUNC_1,
+	.drv = GPIOMUX_DRV_8MA,
+	.pull = GPIOMUX_PULL_NONE,
+};
+#endif
+
 static struct gpiomux_setting mdp_vsync_active_cfg = {
 	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_2MA,
@@ -467,6 +481,25 @@ static struct msm_gpiomux_config msm8x60_mdp_vsync_configs[] __initdata = {
 	},
 };
 
+#ifdef CONFIG_MSM_GSBI9_UART
+static struct msm_gpiomux_config msm8x60_charm_uart_configs[] __initdata = {
+	{ /* UART9DM  RX */
+		.gpio	   = 66,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &uart9dm_active,
+			[GPIOMUX_SUSPENDED] = &gsbi9,
+		},
+	},
+	{ /* UART9DM TX */
+		.gpio	   = 67,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &uart9dm_active,
+			[GPIOMUX_SUSPENDED] = &gsbi9,
+		},
+	},
+};
+#endif
+
 static struct msm_gpiomux_config msm8x60_pmic_configs[] __initdata = {
 	{
 		.gpio = 88,
@@ -486,6 +519,22 @@ struct msm_gpiomux_configs
 msm8x60_pyramid_gpiomux_cfgs[] __initdata = {
 	{msm8x60_gsbi_configs, ARRAY_SIZE(msm8x60_gsbi_configs)},
 	{msm8x60_uart_configs, ARRAY_SIZE(msm8x60_uart_configs)},
+	{msm8x60_aux_pcm_configs, ARRAY_SIZE(msm8x60_aux_pcm_configs)},
+	{msm8x60_snd_configs, ARRAY_SIZE(msm8x60_snd_configs)},
+	{msm8x60_lcdc_configs, ARRAY_SIZE(msm8x60_lcdc_configs)},
+	{msm8x60_mdp_vsync_configs, ARRAY_SIZE(msm8x60_mdp_vsync_configs)},
+	{msm8x60_pmic_configs, ARRAY_SIZE(msm8x60_pmic_configs)},
+	{msm8x60_tmg200_configs, ARRAY_SIZE(msm8x60_tmg200_configs)},
+	{NULL, 0},
+};
+
+struct msm_gpiomux_configs
+msm8x60_htc_gpiomux_cfgs[] __initdata = {
+	{msm8x60_gsbi_configs, ARRAY_SIZE(msm8x60_gsbi_configs)},
+	{msm8x60_uart_configs, ARRAY_SIZE(msm8x60_uart_configs)},
+#ifdef CONFIG_MSM_GSBI9_UART
+	{msm8x60_charm_uart_configs, ARRAY_SIZE(msm8x60_charm_uart_configs)},
+#endif
 	{msm8x60_aux_pcm_configs, ARRAY_SIZE(msm8x60_aux_pcm_configs)},
 	{msm8x60_snd_configs, ARRAY_SIZE(msm8x60_snd_configs)},
 	{msm8x60_lcdc_configs, ARRAY_SIZE(msm8x60_lcdc_configs)},

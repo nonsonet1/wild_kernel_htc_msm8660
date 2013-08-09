@@ -8040,7 +8040,7 @@ struct msm_board_data {
 };
 
 static struct msm_board_data ruby_board_data __initdata = {
-	.gpiomux_cfgs = msm8x60_ruby_gpiomux_cfgs,
+	.gpiomux_cfgs = msm8x60_htc_gpiomux_cfgs,
 };
 
 void ruby_add_usb_devices(void)
@@ -8137,8 +8137,6 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 	clk_ignor_list_add("msm_sdcc.4", "iface_clk", &msm8x60_clock_init_data);
 
 	msm_clock_init(&msm8x60_clock_init_data);
-
-	ruby_init_gpiomux();
 
 	msm8x60_init_buses();
 	platform_add_devices(early_devices, ARRAY_SIZE(early_devices));
