@@ -117,8 +117,8 @@ static void ruby_config_bt_on(void)
 				ARRAY_SIZE(ruby_bt_on_table));
 	mdelay(4);
 
-	htc_wifi_bt_fast_clk_ctl(CLK_ON, ID_BT);
-	mdelay(4);
+	//htc_wifi_bt_fast_clk_ctl(CLK_ON, ID_BT);
+	//mdelay(4);
 
 	gpio_set_value(RUBY_GPIO_BT_EN, 0);
 	mdelay(4);
@@ -130,8 +130,8 @@ static void ruby_config_bt_off(void)
 	gpio_set_value(RUBY_GPIO_BT_EN, 0);
 	mdelay(4);
 
-	htc_wifi_bt_fast_clk_ctl(CLK_OFF, ID_BT);
-	mdelay(4);
+	//htc_wifi_bt_fast_clk_ctl(CLK_OFF, ID_BT);
+	//mdelay(4);
 
 	config_bt_table(ruby_bt_off_table,
 				ARRAY_SIZE(ruby_bt_off_table));

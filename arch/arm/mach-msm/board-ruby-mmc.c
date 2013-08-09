@@ -135,7 +135,6 @@ static struct mmc_platform_data ruby_wifi_data = {
 	.msmsdcc_fmax		= 48000000,
 	.slot_type		= &ruby_sdc_slot_type,
 	.nonremovable		= 1,
-	.pclk_src_dfab		= 1,
 };
 
 #ifdef CONFIG_TIWLAN_SDIO
@@ -160,9 +159,9 @@ int ti_wifi_power(int on)
 	printk(KERN_INFO "%s: %d\n", __func__, on);
 
 	if (on) {
-		htc_wifi_bt_fast_clk_ctl(on, ID_WIFI);
-		mdelay(100);
-		htc_wifi_bt_sleep_clk_ctl(on, ID_WIFI);
+		//htc_wifi_bt_fast_clk_ctl(on, ID_WIFI);
+		//mdelay(100);
+		//htc_wifi_bt_sleep_clk_ctl(on, ID_WIFI);
 		mdelay(100);
 		gpio_set_value(RUBY_GPIO_WIFI_SHUTDOWN_N, 1);
 		msleep(15);
@@ -180,9 +179,9 @@ int ti_wifi_power(int on)
 				  ARRAY_SIZE(wifi_off_gpio_table));
 		gpio_set_value(RUBY_GPIO_WIFI_SHUTDOWN_N, on);
 		mdelay(1);
-		htc_wifi_bt_sleep_clk_ctl(on, ID_WIFI);
-		mdelay(1);
-		htc_wifi_bt_fast_clk_ctl(on, ID_WIFI);
+		//htc_wifi_bt_sleep_clk_ctl(on, ID_WIFI);
+		//mdelay(1);
+		//htc_wifi_bt_fast_clk_ctl(on, ID_WIFI);
 	}
 
 	mdelay(120);
@@ -211,9 +210,7 @@ int __init ruby_init_mmc()
 
 	id = GPIO_CFG(RUBY_GPIO_WIFI_SHUTDOWN_N, 0, GPIO_CFG_OUTPUT,
 		GPIO_CFG_NO_PULL, GPIO_CFG_2MA);
-
 	writel(0x1FDB, SDC4_HDRV_PULL_CTL_ADDR);
-
 	gpio_tlmm_config(id, 0);
 	gpio_set_value(RUBY_GPIO_WIFI_SHUTDOWN_N, 0);
 

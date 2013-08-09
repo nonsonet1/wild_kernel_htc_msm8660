@@ -15,29 +15,28 @@
 
 #include <linux/android_pmem.h>
 #include <linux/mfd/pmic8058.h>
-#include <linux/mfd/marimba.h>
 #include <linux/delay.h>
 #include <linux/pmic8058-othc.h>
+#include <linux/spi/spi_aic3254.h>
 #include <linux/regulator/consumer.h>
-#include <linux/spi_aic3254.h>
 
 #include <mach/gpio.h>
 #include <mach/dal.h>
-#include <linux/tpa2051d3.h>
-#include <mach/qdsp6v2/snddev_icodec.h>
-#include <mach/qdsp6v2/snddev_ecodec.h>
-#include <mach/qdsp6v2/snddev_hdmi.h>
+#include <mach/tpa2051d3.h>
+#include "qdsp6v2/snddev_icodec.h"
+#include "qdsp6v2/snddev_ecodec.h"
+#include "qdsp6v2/snddev_hdmi.h"
 #include <mach/qdsp6v2/audio_dev_ctl.h>
-#include <mach/qdsp6v2/apr_audio.h>
-#include <mach/qdsp6v2/q6asm.h>
+#include <sound/apr_audio.h>
+#include <sound/q6asm.h>
 #include <mach/htc_acoustic_8x60.h>
+#include <mach/board_htc.h>
 
 #include "board-ruby.h"
 
 #define PM8058_GPIO_BASE					NR_MSM_GPIOS
 #define PM8058_GPIO_PM_TO_SYS(pm_gpio)		(pm_gpio + PM8058_GPIO_BASE)
 
-static struct mutex bt_sco_lock;
 static struct mutex mic_lock;
 static int curr_rx_mode;
 static atomic_t aic3254_ctl = ATOMIC_INIT(0);
@@ -417,11 +416,6 @@ int ruby_support_audience(void)
 	return 0;
 }
 
-int ruby_is_msm_i2s_slave(void)
-{
-	return 1;
-}
-
 static uint32_t msm_spi_gpio_on[] = {
 	GPIO_CFG(RUBY_SPI_DO,  1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
 	GPIO_CFG(RUBY_SPI_DI,  1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
@@ -498,12 +492,6 @@ static struct q6v2audio_analog_ops ops = {
 	.usb_headset_enable     = ruby_usb_headset_on,
 };
 
-static struct q6v2audio_icodec_ops iops = {
-	.support_aic3254 = ruby_support_aic3254,
-	.support_adie = ruby_support_adie,
-	.is_msm_i2s_slave = ruby_is_msm_i2s_slave,
-};
-
 static struct aic3254_ctl_ops cops = {
 	.rx_amp_enable        = ruby_rx_amp_enable,
 	.reset_3254           = ruby_reset_3254,
@@ -534,7 +522,6 @@ void __init ruby_audio_init(void)
 
 	pr_aud_info("%s\n", __func__);
 	htc_8x60_register_analog_ops(&ops);
-	htc_8x60_register_icodec_ops(&iops);
 	acoustic_register_ops(&acoustic);
 	htc_8x60_register_aic3254_ops(&aops);
 	msm_set_voc_freq(8000, 8000);
