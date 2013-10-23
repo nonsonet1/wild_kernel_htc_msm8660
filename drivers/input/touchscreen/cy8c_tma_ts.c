@@ -1065,7 +1065,7 @@ static irqreturn_t cy8c_ts_irq_thread(int irq, void *ptr)
 					}
 				//right->left
 				} else if ((ts->finger_count == 1) && (scr_suspended == false) && (s2w_switch > 0)) {
-					scr_on_touch=true;
+					scr_on_touch=false;
 					prevx = 1050;
 					nextx = 680;
 					if ((barrier[0] == true) ||
