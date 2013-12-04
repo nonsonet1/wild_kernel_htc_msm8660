@@ -43,12 +43,13 @@
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 /* prim = 960 x 540 x 4(bpp) x 3(pages) */
-#define MSM_FB_PRIM_BUF_SIZE (960 * ALIGN(540, 32) * 4 * 3)
+#define MSM_FB_PRIM_BUF_SIZE \
+    (roundup((960 * 540 * 4), 4096) * 3) /* 4 bpp x 3 pages */
 #else
 /* prim = 960 x 540 x 4(bpp) x 2(pages) */
-#define MSM_FB_PRIM_BUF_SIZE (960 * ALIGN(540, 32) * 4 * 2)
+#define MSM_FB_PRIM_BUF_SIZE \
+    (roundup((960 * 540 * 4), 4096) * 2) /* 4 bpp x 2 pages */
 #endif
-
 
 #ifdef CONFIG_FB_MSM_OVERLAY_WRITEBACK
 /* width x height x 3 bpp x 2 frame buffer */
@@ -89,27 +90,26 @@
 #define MSM_ION_WB_BASE         0x45C00000
 /* End ION */
 
-#define MSM_SMI_BASE          0x38000000
-#define MSM_SMI_SIZE          0x4000000
+#define MSM_SMI_BASE		0x38000000
+#define MSM_SMI_SIZE		0x4000000
 
 /* Kernel SMI PMEM Region for video core, used for Firmware */
 /* and encoder,decoder scratch buffers */
 /* Kernel SMI PMEM Region Should always precede the user space */
 /* SMI PMEM Region, as the video core will use offset address */
 /* from the Firmware base */
-#define KERNEL_SMI_BASE       (MSM_SMI_BASE)
-#define KERNEL_SMI_SIZE       0x400000
+#define KERNEL_SMI_BASE		(MSM_SMI_BASE)
+#define KERNEL_SMI_SIZE		0x700000
 
 /* User space SMI PMEM Region for video core*/
 /* used for encoder, decoder input & output buffers  */
-#define USER_SMI_BASE         (KERNEL_SMI_BASE + KERNEL_SMI_SIZE)
-#define USER_SMI_SIZE         (MSM_SMI_SIZE - KERNEL_SMI_SIZE)
-#define MSM_PMEM_SMIPOOL_BASE USER_SMI_BASE
-#define MSM_PMEM_SMIPOOL_SIZE USER_SMI_SIZE
+#define USER_SMI_BASE		(KERNEL_SMI_BASE + KERNEL_SMI_SIZE)
+#define USER_SMI_SIZE		(MSM_SMI_SIZE - KERNEL_SMI_SIZE)
+#define MSM_PMEM_SMIPOOL_BASE	USER_SMI_BASE
+#define MSM_PMEM_SMIPOOL_SIZE	USER_SMI_SIZE
 
-#define PHY_BASE_ADDR1  0x48000000
-#define SIZE_ADDR1      0x23000000
-
+#define PHY_BASE_ADDR1		0x48000000
+#define SIZE_ADDR1		0x23000000
 
 /* GPIO definition */
 
@@ -230,6 +230,7 @@
 #define SHOOTER_WEBCAM_STB		(140)
 #define SHOOTER_WEBCAM_RST		(138)
 #define SHOOTER_CAM_SEL			(141)
+#define SHOOTER_SP3D_INT		(106)
 
 /* LCM */
 #define SHOOTER_CTL_3D_1		(131)
