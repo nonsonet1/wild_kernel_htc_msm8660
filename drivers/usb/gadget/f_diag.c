@@ -2,7 +2,7 @@
  * Diag Function Device - Route ARM9 and ARM11 DIAG messages
  * between HOST and DEVICE.
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2008-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2008-2011, The Linux Foundation. All rights reserved.
  * Author: Brian Swetland <swetland@google.com>
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -736,9 +736,10 @@ static void diag_cleanup(void)
 	struct list_head *act, *tmp;
 	struct usb_diag_ch *_ch;
 	unsigned long flags;
-	struct dentry *dent_diag;
 
+#if defined(CONFIG_DEBUG_FS)
 	debugfs_remove_recursive(dent_diag);
+#endif
 
 	list_for_each_safe(act, tmp, &usb_diag_ch_list) {
 		_ch = list_entry(act, struct usb_diag_ch, list);

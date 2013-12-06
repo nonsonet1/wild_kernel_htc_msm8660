@@ -82,7 +82,7 @@ config USB_GADGET_DEBUG_FS
 config USB_GADGET_VBUS_DRAW
 	int "Maximum VBUS Power usage (2-500 mA)"
 	range 2 500
-	default 2
+	default 500
 	help
 	   Some devices need to draw power from USB when they are
 	   configured, perhaps to operate circuitry or to recharge
@@ -1170,10 +1170,3 @@ config USB_ANDROID_RMNET_CTRL_SMD
 	 Data interface used is BAM.
 
 endif # USB_GADGET
-
-config USB_HTC_SWITCH_STUB
-	depends on USB_G_ANDROID
-	bool "USB HTC function switch stub"
-	default n
-	help
-	  Provide dummy HTC USB function switch sysfs device for libhtc_ril.
