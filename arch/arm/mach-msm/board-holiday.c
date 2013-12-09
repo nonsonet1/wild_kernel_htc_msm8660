@@ -2270,20 +2270,24 @@ static void __init msm8x60_init_dsps(void)
 #define MSM_PMEM_SMIPOOL_BASE USER_SMI_BASE
 #define MSM_PMEM_SMIPOOL_SIZE USER_SMI_SIZE
 
+/* PMEM Memory map */
+#define MSM_PMEM_ADSP_SIZE    0x1800000
+#define MSM_PMEM_AUDIO_SIZE   0x239000
+
+#define MSM_PMEM_AUDIO_BASE   (0x46400000)
+#define MSM_PMEM_ADSP_BASE    (0x70000000 - MSM_PMEM_ADSP_SIZE)
+
+/* END PMEM Memory map */
 
 /* ION Memory map */
 #define MSM_ION_HEAP_NUM      3
-
-#define MSM_PMEM_ADSP_SIZE    0x1800000
-#define MSM_PMEM_AUDIO_SIZE   0x239000
 
 #define MSM_ION_SF_SIZE       0x29A0000
 #define MSM_ION_WB_SIZE       0x2FD000  /* MSM_OVERLAY_BLT_SIZE */
 
 #define MSM_ION_SF_BASE       (0x40400000)
 #define MSM_ION_WB_BASE       (0x45C00000)
-#define MSM_PMEM_AUDIO_BASE   (0x46400000)
-#define MSM_PMEM_ADSP_BASE    (0x70000000 - MSM_PMEM_ADSP_SIZE)
+
 /* END ION Memory map */
 
 static unsigned fb_size;
