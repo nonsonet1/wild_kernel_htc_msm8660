@@ -2226,63 +2226,65 @@ static void __init msm8x60_init_dsps(void)
 #endif
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
-/* prim = 960 x 540 x 4(bpp) x 3(pages) */
 #define MSM_FB_PRIM_BUF_SIZE \
-    (roundup((960 * 540 * 4), 4096) * 3) /* 4 bpp x 3 pages */
+                (roundup((960 * 540 * 4), 4096) * 3) /* 4 bpp x 3 pages */ /*0x5F1000*/
 #else
-/* prim = 960 x 540 x 4(bpp) x 2(pages) */
 #define MSM_FB_PRIM_BUF_SIZE \
-    (roundup((960 * 540 * 4), 4096) * 2) /* 4 bpp x 2 pages */
+                (roundup((960 * 540 * 4), 4096) * 2) /* 4 bpp x 2 pages */ /*0x3F6000*/
+#endif
+
+#ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
+#define MSM_FB_EXT_BUF_SIZE  \
+                (roundup((1920 * 1080 * 2), 4096) * 1) /* 2 bpp x 1 page */ /*0x3F5000*/
+#else
+#define MSM_FB_EXT_BUF_SIZE        0
 #endif
 
 #ifdef CONFIG_FB_MSM_OVERLAY_WRITEBACK
 /* width x height x 3 bpp x 2 frame buffer */
-#define MSM_FB_WRITEBACK_SIZE roundup(960 * ALIGN(540, 32) * 3 * 2, 4096)
+#define MSM_FB_WRITEBACK_SIZE 0x2F8000 /*roundup((960 * 540 * 3 * 2), 4096)*/
+#define MSM_FB_WRITEBACK_OFFSET 0
 #else
-#define MSM_FB_WRITEBACK_SIZE 0
+#define MSM_FB_WRITEBACK_SIZE   0
+#define MSM_FB_WRITEBACK_OFFSET 0
 #endif
 
-/* Note: must be a multiple of 4096 */
+/* Note: must be multiple of 4096 */
 #define MSM_FB_SIZE 0x6F0000
-
-/* PMEM Memory map  */
-#define MSM_PMEM_ADSP_SIZE      0x1200000 /* 18MB */
-#define MSM_PMEM_AUDIO_SIZE     0x239000 /* 2.22MB  */
-
-#define MSM_PMEM_AUDIO_BASE     0x46400000
-#define MSM_PMEM_ADSP_BASE      (0x80000000 - MSM_PMEM_ADSP_SIZE)
-/* End PMEM */
-
-/* ION Memory map */
-#define MSM_ION_HEAP_NUM        3
-
-#define MSM_ION_SF_SIZE         0x29A0000 /* 41.625MB */
-#define MSM_ION_WB_SIZE         0x2FD000 /* 2.99MB  */
-
-#define MSM_ION_SF_BASE         0x40400000
-#define MSM_ION_WB_BASE         0x45C00000
-/* End ION */
-
-#define MSM_SMI_BASE		0x38000000
-#define MSM_SMI_SIZE		0x4000000
 
 /* Kernel SMI PMEM Region for video core, used for Firmware */
 /* and encoder,decoder scratch buffers */
 /* Kernel SMI PMEM Region Should always precede the user space */
 /* SMI PMEM Region, as the video core will use offset address */
 /* from the Firmware base */
-#define KERNEL_SMI_BASE		(MSM_SMI_BASE)
-#define KERNEL_SMI_SIZE		0x700000
+#define KERNEL_SMI_BASE       (MSM_SMI_BASE)
+#define KERNEL_SMI_SIZE       0x500000
+
+#define MSM_SMI_BASE          (0x38000000)
+#define MSM_SMI_SIZE          (0x4000000)
 
 /* User space SMI PMEM Region for video core*/
 /* used for encoder, decoder input & output buffers  */
-#define USER_SMI_BASE		(KERNEL_SMI_BASE + KERNEL_SMI_SIZE)
-#define USER_SMI_SIZE		(MSM_SMI_SIZE - KERNEL_SMI_SIZE)
-#define MSM_PMEM_SMIPOOL_BASE	USER_SMI_BASE
-#define MSM_PMEM_SMIPOOL_SIZE	USER_SMI_SIZE
+#define USER_SMI_BASE         (KERNEL_SMI_BASE + KERNEL_SMI_SIZE)
+#define USER_SMI_SIZE         (MSM_SMI_SIZE - KERNEL_SMI_SIZE)
+#define MSM_PMEM_SMIPOOL_BASE USER_SMI_BASE
+#define MSM_PMEM_SMIPOOL_SIZE USER_SMI_SIZE
 
-#define PHY_BASE_ADDR1		0x48000000
-#define SIZE_ADDR1		0x23000000
+
+/* ION Memory map */
+#define MSM_ION_HEAP_NUM      3
+
+#define MSM_PMEM_ADSP_SIZE    0x1800000
+#define MSM_PMEM_AUDIO_SIZE   0x239000
+
+#define MSM_ION_SF_SIZE       0x29A0000
+#define MSM_ION_WB_SIZE       0x2FD000  /* MSM_OVERLAY_BLT_SIZE */
+
+#define MSM_ION_SF_BASE       (0x40400000)
+#define MSM_ION_WB_BASE       (0x45C00000)
+#define MSM_PMEM_AUDIO_BASE   (0x46400000)
+#define MSM_PMEM_ADSP_BASE    (0x70000000 - MSM_PMEM_ADSP_SIZE)
+/* END ION Memory map */
 
 static unsigned fb_size;
 static int __init fb_size_setup(char *p)
@@ -7004,7 +7006,7 @@ static void __init msm8x60_calculate_reserve_sizes(void)
 
 static int msm8x60_paddr_to_memtype(phys_addr_t paddr)
 {
-	if (paddr >= 0x40000000 && paddr < 0x80000000)
+	if (paddr >= 0x40000000 && paddr < 0x70000000)
 		return MEMTYPE_EBI1;
 	if (paddr >= 0x38000000 && paddr < 0x40000000)
 		return MEMTYPE_SMI;
@@ -7322,10 +7324,8 @@ static void __init holiday_init(void)
 	printk(KERN_INFO "%s revision=%d engineerid=%d\n", __func__, system_rev, engineerid);
 }
 
-/*
 #define PHY_BASE_ADDR1  0x48000000
 #define SIZE_ADDR1	  0x32B00000
-*/
 
 static void __init holiday_fixup(struct machine_desc *desc, struct tag *tags,
 				 char **cmdline, struct meminfo *mi)
