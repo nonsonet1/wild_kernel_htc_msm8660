@@ -232,6 +232,7 @@ enum msm_camera_type {
 	BACK_CAMERA_3D,
 	BACK_CAMERA_INT_3D,
 };
+
 #ifdef CONFIG_MSM_CAMERA_V4L2
 enum camera_vreg_type {
 	REG_LDO,
@@ -608,10 +609,13 @@ struct msm_vidc_platform_data {
 	u32 enable_ion;
 	int disable_dmx;
 	int disable_fullhd;
+	u32 cp_enabled;
+        u32 secure_wb_heap;
 #ifdef CONFIG_MSM_BUS_SCALING
 	struct msm_bus_scale_pdata *vidc_bus_client_pdata;
 #endif
 	int disable_turbo;
+        int cont_mode_dpb_count;
 };
 
 #if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
