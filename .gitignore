@@ -10,6 +10,9 @@
 # Normal rules
 #
 .*
+*.zip
+*.txt
+zImage
 *.o
 *.o.*
 *.a
