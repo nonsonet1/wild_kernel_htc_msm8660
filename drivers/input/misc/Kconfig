@@ -562,14 +562,4 @@ config INPUT_MICROP
 	help
 	  Say Y here if you want to support uP based keys.
 
-config INPUT_DUMMY_KEYPAD
-       tristate "Dummy Keypad driver support"
-       help
-         Say Y here if you want to support dummy keypad driver, wheels etc...
-
-config POWER_KEY_LED
-	tristate "Power key LED"
-	help
-	  Say Y here if you want to support power key LED.
-
 endif

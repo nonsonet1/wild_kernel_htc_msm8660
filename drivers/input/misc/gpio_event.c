@@ -21,14 +21,6 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 
-#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
-#include <linux/atmel_qt602240.h>
-#endif
-
-#ifdef CONFIG_TOUCHSCREEN_CYPRESS_SWEEP2WAKE
-#include <linux/cy8c_tma_ts.h>
-#endif
-
 static unsigned char fm_radio_status;
 
 int gpio_event_get_fm_radio_status(void)
@@ -266,23 +258,6 @@ static int gpio_event_probe(struct platform_device *pdev)
 					event_info->name : event_info->names[i];
 		input_dev->event = gpio_input_event;
 		ip->input_devs->dev[i] = input_dev;
-#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
-#if defined (CONFIG_MACH_SHOOTER)
-		if (!strcmp(input_dev->name, "shooter-keypad")) {
-#endif
-#if defined (CONFIG_MACH_SHOOTER_U)
-		if (!strcmp(input_dev->name, "shooteru-keypad")) {
-#endif
-			sweep2wake_setdev(input_dev);
-			printk(KERN_INFO "[SWEEP2WAKE]: set device %s\n", input_dev->name);
-		}
-#endif
-#ifdef CONFIG_TOUCHSCREEN_CYPRESS_SWEEP2WAKE
-		if (!strcmp(input_dev->name, "pyramid-keypad")) {
-			sweep2wake_setdev(input_dev);
-			printk(KERN_INFO "[sweep2wake]: set device %s\n", input_dev->name);
-		}
-#endif
 	}
 	ip->input_devs->count = dev_count;
 	ip->info = event_info;
@@ -303,8 +278,8 @@ static int gpio_event_probe(struct platform_device *pdev)
 	for (i = 0; i < dev_count; i++) {
 		err = input_register_device(ip->input_devs->dev[i]);
 		if (err) {
-			KEY_LOGE("KEY_ERR: %s: Unable to register %s "
-				"input device\n", __func__, ip->input_devs->dev[i]->name);
+			KEY_LOGE("gpio_event_probe: Unable to register %s "
+				"input device\n", ip->input_devs->dev[i]->name);
 			goto err_input_register_device_failed;
 		}
 		registered++;
