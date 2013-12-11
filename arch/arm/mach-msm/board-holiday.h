@@ -24,6 +24,97 @@
 #define MSM_RAM_CONSOLE_BASE	MSM_HTC_RAM_CONSOLE_PHYS
 #define MSM_RAM_CONSOLE_SIZE	MSM_HTC_RAM_CONSOLE_SIZE
 
+/* Memory Map */
+
+#if defined(CONFIG_CRYPTO_DEV_QCRYPTO) || \
+                defined(CONFIG_CRYPTO_DEV_QCRYPTO_MODULE) || \
+                defined(CONFIG_CRYPTO_DEV_QCEDEV) || \
+                defined(CONFIG_CRYPTO_DEV_QCEDEV_MODULE)
+#define QCE_SIZE                0x10000
+#define QCE_0_BASE                0x18500000
+#endif
+
+#ifdef CONFIG_FB_MSM_LCDC_DSUB
+#define MSM_FB_DSUB_PMEM_ADDER (0x9E3400-0x4B0000)
+#else
+#define MSM_FB_DSUB_PMEM_ADDER (0)
+#endif
+
+#ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
+#define MSM_FB_PRIM_BUF_SIZE (960 * ALIGN(540, 32) * 4 * 3)
+#else
+#define MSM_FB_PRIM_BUF_SIZE (960 * ALIGN(540, 32) * 4 * 2)
+#endif
+
+
+#ifdef CONFIG_FB_MSM_OVERLAY0_WRITEBACK
+#define MSM_FB_WRITEBACK_SIZE roundup(960 * ALIGN(540, 32) * 3 * 2, 4096)
+#else
+#define MSM_FB_WRITEBACK_SIZE 0
+#endif
+
+#ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
+#define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + 0x3F4800 + MSM_FB_DSUB_PMEM_ADDER, 4096)
+#elif defined(CONFIG_FB_MSM_TVOUT)
+#define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + 0x195000 + MSM_FB_DSUB_PMEM_ADDER, 4096)
+#else 
+#define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + MSM_FB_DSUB_PMEM_ADDER, 4096)
+#endif 
+
+#define MSM_FB_BASE                                (0x40400000)
+
+/* PMEM memory map */
+#define MSM_PMEM_ADSP_SIZE        0x1800000
+#define MSM_PMEM_AUDIO_SIZE        0x239000
+
+#define MSM_PMEM_ADSP_BASE                (0x80000000 - MSM_PMEM_ADSP_SIZE)
+#define MSM_PMEM_AUDIO_BASE                (0x46400000)
+/* END */
+
+#define MSM_SMI_BASE          0x38000000
+#define MSM_SMI_SIZE          0x4000000
+
+#define KERNEL_SMI_BASE       (MSM_SMI_BASE)
+#define KERNEL_SMI_SIZE       0x400000
+
+#define USER_SMI_BASE         (KERNEL_SMI_BASE + KERNEL_SMI_SIZE)
+#define USER_SMI_SIZE         (MSM_SMI_SIZE - KERNEL_SMI_SIZE)
+#define MSM_PMEM_SMIPOOL_BASE USER_SMI_BASE
+#define MSM_PMEM_SMIPOOL_SIZE USER_SMI_SIZE
+
+#define MSM_PMEM_KERNEL_EBI1_SIZE  0x600000 
+
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+#define MSM_ION_SF_SIZE       0x4000000
+#define MSM_ION_MM_FW_SIZE    0x200000  
+#define MSM_ION_MM_SIZE       0x3D00000 
+#define MSM_ION_MFC_SIZE      0x100000  
+#define MSM_ION_WB_SIZE       0x2FD000  
+
+#ifdef CONFIG_TZCOM
+#define MSM_ION_QSECOM_SIZE   MSM_PMEM_KERNEL_EBI1_SIZE
+#ifdef CONFIG_MSM_IOMMU
+#define MSM_ION_HEAP_NUM      9
+#else
+#define MSM_ION_HEAP_NUM      10
+#endif
+#else
+#ifdef CONFIG_MSM_IOMMU
+#define MSM_ION_HEAP_NUM      8
+#else
+#define MSM_ION_HEAP_NUM      9
+#endif
+#endif
+
+#define MSM_ION_WB_BASE       (0x46400000)
+
+#else 
+#define MSM_ION_HEAP_NUM      1
+#endif
+
+#define PHY_BASE_ADDR1  0x48000000
+#define SIZE_ADDR1        0x35100000
+
 extern int panel_type;
 
 /* GPIO definition */
