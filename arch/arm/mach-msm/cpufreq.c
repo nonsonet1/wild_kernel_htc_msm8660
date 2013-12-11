@@ -52,6 +52,10 @@ static DEFINE_PER_CPU(struct cpufreq_suspend_t, cpufreq_suspend);
 
 static int override_cpu;
 
+unsigned int max_capped;
+
+static unsigned int screen_off_max_freq = 594000;
+
 #ifdef CONFIG_CMDLINE_OPTIONS
 /*
  * start cmdline_khz
@@ -565,6 +569,7 @@ struct freq_attr msm_cpufreq_attr_max_screen_off_khz = {
 	.show = show_max_screen_off_khz,
 	.store = store_max_screen_off_khz,
 };
+max_capped = screen_off_max_freq;
 #endif
 
 static struct freq_attr *msm_freq_attr[] = {
