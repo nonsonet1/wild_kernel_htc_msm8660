@@ -2,6 +2,8 @@
 
 #### FOR DEVELOPING ONLY DOES NOT CONTAIN 99kernel INIT SCRIPT TO CONFIG THE KERNEL. ASSUMES YOU ARE DOING A DIRTY FLASH ####
 
+export SRC_ROOT=`readlink -f ../../..`
+
 ## time start ##
 
 time_start=$(date +%s.%N)
@@ -12,7 +14,7 @@ MAKE="4"
 ## Set compiler location to compile with linaro cortex a8
 echo "Setting compiler location..."
 export ARCH=arm
-export CROSS_COMPILE=$HOME/android/system/prebuilt/linux-x86/toolchain/linaro-arm-cortex-a8/bin/arm-cortex_a8-linux-gnueabi-
+export CROSS_COMPILE=$SRC_ROOT/prebuilt/linux-x86/toolchain/linaro-arm-cortex-a8/bin/arm-cortex_a8-linux-gnueabi-
 
 ## Build kernel using holiday_defconfig
 make holiday_defconfig

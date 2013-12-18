@@ -20,7 +20,7 @@
 #include <mach/dma.h>
 #include <asm/mach/mmc.h>
 #include <asm/clkdev.h>
-#include <linux/msm_kgsl.h>
+#include <mach/kgsl.h>
 #include <linux/msm_rotator.h>
 #include <mach/msm_hsusb.h>
 #include "footswitch.h"
@@ -2613,13 +2613,8 @@ struct msm_vidc_platform_data vidc_platform_data = {
 #ifdef CONFIG_MSM_BUS_SCALING
 	.vidc_bus_client_pdata = &vidc_bus_client_data,
 #endif
-#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
-	.memtype = ION_CP_MM_HEAP_ID,
-	.enable_ion = 1,
-#else
 	.memtype = MEMTYPE_SMI_KERNEL,
 	.enable_ion = 0,
-#endif
 	.disable_dmx = 0,
 	.disable_fullhd = 0,
 	.disable_turbo = 1
