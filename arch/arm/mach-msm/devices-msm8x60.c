@@ -987,7 +987,6 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 		},
 	},
 	.init_level = 0,
-	.max_level = 2,
 	.num_levels = 5,
 	.set_grp_async = NULL,
 	.idle_timeout = HZ/5,
@@ -1048,7 +1047,6 @@ static struct kgsl_device_platform_data kgsl_2d0_pdata = {
 	},
 	.init_level = 2,
 	.num_levels = 5,
-	.max_level = 1,
 	.set_grp_async = NULL,
 	.idle_timeout = HZ/5,
 	.nap_allowed = false,
@@ -1108,7 +1106,6 @@ static struct kgsl_device_platform_data kgsl_2d1_pdata = {
 	},
 	.init_level = 2,
 	.num_levels = 5,
-	.max_level = 1,
 	.set_grp_async = NULL,
 	.idle_timeout = HZ/5,
 	.nap_allowed = false,
@@ -1890,10 +1887,6 @@ static struct msm_rotator_platform_data rotator_pdata = {
 	.hardware_version_number = 0x01010307,
 	.rotator_clks = rotator_clocks,
 	.regulator_name = "fs_rot",
-#ifdef CONFIG_MSM_BUS_SCALING
-	.bus_scale_table = &rotator_bus_scale_pdata,
-#endif
-
 };
 
 struct platform_device msm_rotator_device = {

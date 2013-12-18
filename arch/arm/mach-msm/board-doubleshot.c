@@ -61,6 +61,11 @@
 #include <linux/android_pmem.h>
 #endif
 
+#ifdef CONFIG_ION_MSM
+#include <linux/ion.h>
+#include <mach/ion.h>
+#endif
+
 #if defined(CONFIG_SMB137B_CHARGER) || defined(CONFIG_SMB137B_CHARGER_MODULE)
 #include <linux/i2c/smb137b.h>
 #endif
@@ -178,8 +183,7 @@ int set_three_phase_freq_badass(int cpufreq);
 
 int __init dot_init_panel(struct resource *res, size_t size);
 #ifdef CONFIG_ION_MSM
-int __init doubleshot_ion_reserve_memory(struct memtype_reserve *table);
-int __init doubleshot_ion_init();
+static struct platform_device ion_dev;
 #endif
 
 enum {
@@ -1955,14 +1959,6 @@ early_param("fb_size", fb_size_setup);
 
 #ifdef CONFIG_ANDROID_PMEM
 
-static unsigned pmem_mdp_size = MSM_PMEM_MDP_SIZE;
-static int __init pmem_mdp_size_setup(char *p)
-{
-	pmem_mdp_size = memparse(p, NULL);
-	return 0;
-}
-early_param("pmem_mdp_size", pmem_mdp_size_setup);
-
 static unsigned pmem_adsp_size = MSM_PMEM_ADSP_SIZE;
 
 static int __init pmem_adsp_size_setup(char *p)
@@ -1972,6 +1968,7 @@ static int __init pmem_adsp_size_setup(char *p)
 }
 early_param("pmem_adsp_size", pmem_adsp_size_setup);
 
+/*
 static unsigned pmem_adsp2_size = MSM_PMEM_ADSP2_SIZE;
 
 static int __init pmem_adsp2_size_setup(char *p)
@@ -1980,6 +1977,7 @@ static int __init pmem_adsp2_size_setup(char *p)
 	return 0;
 }
 early_param("pmem_adsp2_size", pmem_adsp2_size_setup);
+*/
 
 static unsigned pmem_audio_size = MSM_PMEM_AUDIO_SIZE;
 
@@ -2002,19 +2000,6 @@ static struct resource msm_fb_resources[] = {
 };
 
 #ifdef CONFIG_ANDROID_PMEM
-#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
-
-static struct android_pmem_platform_data android_pmem_pdata = {
-	.name = "pmem",
-	.allocator_type = PMEM_ALLOCATORTYPE_ALLORNOTHING,
-	.cached = 1,
-};
-
-static struct platform_device android_pmem_device = {
-	.name = "android_pmem",
-	.id = 0,
-	.dev = {.platform_data = &android_pmem_pdata},
-};
 
 static struct android_pmem_platform_data android_pmem_adsp_pdata = {
 	.name = "pmem_adsp",
@@ -2028,6 +2013,7 @@ static struct platform_device android_pmem_adsp_device = {
 	.dev = { .platform_data = &android_pmem_adsp_pdata },
 };
 
+/*
 static struct android_pmem_platform_data android_pmem_adsp2_pdata = {
 	.name = "pmem_adsp2",
 	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
@@ -2039,7 +2025,7 @@ static struct platform_device android_pmem_adsp2_device = {
 	.id = 3,
 	.dev = { .platform_data = &android_pmem_adsp2_pdata },
 };
-#endif
+*/
 
 static struct android_pmem_platform_data android_pmem_audio_pdata = {
 	.name = "pmem_audio",
@@ -2092,6 +2078,56 @@ void *pmem_setup_smi_region(void)
 {
 	return (void *)msm_bus_scale_register_client(&smi_client_pdata);
 }
+
+#ifdef CONFIG_ION_MSM
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+
+static struct ion_cp_heap_pdata cp_wb_ion_pdata = {
+        .permission_type = IPT_TYPE_MDP_WRITEBACK,
+        .align = PAGE_SIZE,
+};
+
+static struct ion_co_heap_pdata co_ion_pdata = {
+        .adjacent_mem_id = INVALID_HEAP_ID,
+        .align = PAGE_SIZE,
+};
+
+#endif
+static struct ion_platform_data ion_pdata = {
+        .nr = MSM_ION_HEAP_NUM,
+        .heaps = {
+                {
+                        .id          = ION_SYSTEM_HEAP_ID,
+                        .type        = ION_HEAP_TYPE_SYSTEM,
+                        .name        = ION_VMALLOC_HEAP_NAME,
+                },
+                {
+                        .id          = ION_SF_HEAP_ID,
+                        .type        = ION_HEAP_TYPE_CARVEOUT,
+                        .name        = ION_SF_HEAP_NAME,
+			.base        = MSM_ION_SF_BASE,
+                        .size        = MSM_ION_SF_SIZE,
+                        .memory_type = ION_EBI_TYPE,
+                        .extra_data = (void *) &co_ion_pdata,
+                },
+                {
+                        .id        = ION_CP_WB_HEAP_ID,
+                        .type        = ION_HEAP_TYPE_CP,
+                        .name        = ION_WB_HEAP_NAME,
+                        .base        = MSM_ION_WB_BASE,
+                        .size        = MSM_ION_WB_SIZE,
+                        .memory_type = ION_EBI_TYPE,
+                        .extra_data = (void *) &cp_wb_ion_pdata,
+                },
+        }
+};
+
+static struct platform_device ion_dev = {
+        .name = "ion-msm",
+        .id = 1,
+        .dev = { .platform_data = &ion_pdata },
+};
+#endif
 
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
 static struct resource hdmi_msm_resources[] = {
@@ -2159,12 +2195,14 @@ static struct platform_device android_pmem_smipool_device = {
 static void __init msm8x60_allocate_memory_regions(void)
 {
 	unsigned long size;
+	void *addr;
 
 	size = MSM_FB_SIZE;
-	msm_fb_resources[0].start = MSM_FB_BASE;
+	addr = alloc_bootmem_align(size, 0x1000);
+	msm_fb_resources[0].start = __pa(addr);
 	msm_fb_resources[0].end = msm_fb_resources[0].start + size - 1;
-	pr_info("allocating %lu bytes at 0x%p (0x%lx physical) for fb\n",
-		size, __va(MSM_FB_BASE), (unsigned long) MSM_FB_BASE);
+	pr_info("allocating %lu bytes at %p (%lx physical) for fb\n",
+		size, addr, __pa(addr));
 
 #ifdef CONFIG_FB_MSM_OVERLAY_WRITEBACK
 	size = MSM_FB_WRITEBACK_SIZE;
@@ -3379,11 +3417,8 @@ static struct platform_device *doubleshot_devices[] __initdata = {
 	&msm_batt_device,
 #endif
 #ifdef CONFIG_ANDROID_PMEM
-#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
-	&android_pmem_device,
 	&android_pmem_adsp_device,
-	&android_pmem_adsp2_device,
-#endif
+	//&android_pmem_adsp2_device,
 	&android_pmem_audio_device,
 	&android_pmem_smipool_device,
 #endif
@@ -3454,6 +3489,9 @@ static struct platform_device *doubleshot_devices[] __initdata = {
 #ifdef CONFIG_BT
 	&doubleshot_rfkill,
 #endif
+#ifdef CONFIG_ION_MSM
+	&ion_dev,
+#endif
 	&pm8058_leds,
 	&msm8660_device_watchdog,
 };
@@ -3481,10 +3519,7 @@ static struct memtype_reserve msm8x60_reserve_table[] __initdata = {
 		.flags	=	MEMTYPE_FLAGS_1M_ALIGN,
 	},
 	[MEMTYPE_EBI1] = {
-		.start	=	MSM_PMEM_KERNEL_EBI1_BASE,
-		.limit	=	MSM_PMEM_KERNEL_EBI1_SIZE,
-		.size	=	MSM_PMEM_KERNEL_EBI1_SIZE,
-		.flags	= 	MEMTYPE_FLAGS_FIXED,
+		.flags	=	MEMTYPE_FLAGS_1M_ALIGN,
 	},
 };
 
@@ -3501,15 +3536,21 @@ static void __init size_pmem_device(struct android_pmem_platform_data *pdata, un
 static void __init size_pmem_devices(void)
 {
 #ifdef CONFIG_ANDROID_PMEM
-#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
-	size_pmem_device(&android_pmem_pdata, MSM_PMEM_MDP_BASE, pmem_mdp_size);
 	size_pmem_device(&android_pmem_adsp_pdata, MSM_PMEM_ADSP_BASE, pmem_adsp_size);
-	size_pmem_device(&android_pmem_adsp2_pdata, MSM_PMEM_ADSP2_BASE, pmem_adsp2_size);
-#endif
+	//size_pmem_device(&android_pmem_adsp2_pdata, MSM_PMEM_ADSP2_BASE, pmem_adsp2_size);
 	size_pmem_device(&android_pmem_smipool_pdata, MSM_PMEM_SMIPOOL_BASE, MSM_PMEM_SMIPOOL_SIZE);
 	size_pmem_device(&android_pmem_audio_pdata, MSM_PMEM_AUDIO_BASE, MSM_PMEM_AUDIO_SIZE);
 #endif
 }
+
+#ifdef CONFIG_ION_MSM
+static void __init reserve_ion_memory(void)
+{
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+	msm8x60_reserve_table[MEMTYPE_EBI1].size += MSM_ION_SF_SIZE;
+#endif
+}
+#endif
 
 #ifdef CONFIG_ANDROID_PMEM
 static void __init reserve_memory_for(struct android_pmem_platform_data *p)
@@ -3527,11 +3568,8 @@ static void __init reserve_memory_for(struct android_pmem_platform_data *p)
 static void __init reserve_pmem_memory(void)
 {
 #ifdef CONFIG_ANDROID_PMEM
-#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
-	reserve_memory_for(&android_pmem_pdata);
 	reserve_memory_for(&android_pmem_adsp_pdata);
-	reserve_memory_for(&android_pmem_adsp2_pdata);
-#endif
+	//reserve_memory_for(&android_pmem_adsp2_pdata);
 	reserve_memory_for(&android_pmem_smipool_pdata);
 	reserve_memory_for(&android_pmem_audio_pdata);
 #endif
@@ -3539,17 +3577,16 @@ static void __init reserve_pmem_memory(void)
 
 static void __init msm8x60_calculate_reserve_sizes(void)
 {
-#ifdef CONFIG_ION_MSM
-	doubleshot_ion_reserve_memory(msm8x60_reserve_table);
-#endif
-
 	size_pmem_devices();
 	reserve_pmem_memory();
+#ifdef CONFIG_ION_MSM
+	reserve_ion_memory();
+#endif
 }
 
 static int msm8x60_paddr_to_memtype(unsigned int paddr)
 {
-	if (paddr >= 0x40000000 && paddr < 0x60000000)
+	if (paddr >= 0x40000000 && paddr < 0x70000000)
 		return MEMTYPE_EBI1;
 	if (paddr >= 0x38000000 && paddr < 0x40000000)
 		return MEMTYPE_SMI;
@@ -6687,10 +6724,6 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 				     msm_num_footswitch_devices);
 	platform_add_devices(doubleshot_devices,
 			     ARRAY_SIZE(doubleshot_devices));
-
-#ifdef CONFIG_ION_MSM
-	doubleshot_ion_init();
-#endif
 
 	/*usb driver won't be loaded in MFG 58 station and gift mode*/
 	if (!(board_mfg_mode() == 6 || board_mfg_mode() == 7))
